@@ -1,11 +1,8 @@
-﻿namespace FacebookAutomation.Models
+﻿using FacebookAutomation.Models.Facebook;
+
+namespace FacebookAutomation.Models
 {
-    public class PostInfoResult
-    {
-        public PageInfo PageInfo { get; set; }
-        public IList<PostInfoModel> PostModels { get; set; }
-    }
-    public class PostInfoModel
+    public class PostInfoModel : BaseResponseModel
     {
         public string StoryId { get; set; }
         public string PostId { get; set; }
@@ -14,12 +11,12 @@
 
     public class PostMapper
     {
-        public PostInfoResult MapToPostInfoResult(dynamic expandoObject)
+        public BaseResponse<PostInfoModel> MapToPostInfoResult(dynamic expandoObject)
         {
             // Initialize the result object
-            var result = new PostInfoResult
+            var result = new BaseResponse<PostInfoModel>
             {
-                PostModels = new List<PostInfoModel>()
+                Models = new List<PostInfoModel>()
             };
 
             // Map the results (edges) into PostModels
@@ -34,7 +31,7 @@
                         FeedbackId = edge.rendering_strategy?.view_model?.click_model?.story?.feedback?.id
                     };
 
-                    result.PostModels.Add(postInfo);
+                    result.Models.Add(postInfo);
                 }
             }
 

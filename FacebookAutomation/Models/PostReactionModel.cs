@@ -1,14 +1,11 @@
-﻿namespace FacebookAutomation.Models
+﻿using FacebookAutomation.Models.Facebook;
+
+namespace FacebookAutomation.Models
 {
     public class PostReactionsResult
     {
         public PageInfo PageInfo { get; set; }
-        public IList<ReactorInfo> Reactors { get; set; }
-    }
-    public class ReactorInfo
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public IList<FacebookUser> Reactors { get; set; }
     }
 
     public class PostReactionsMapper
@@ -18,7 +15,7 @@
             // Initialize the result object
             var result = new PostReactionsResult
             {
-                Reactors = new List<ReactorInfo>()
+                Reactors = new List<FacebookUser>()
             };
 
             // Map the results (edges) into PostModels
@@ -26,22 +23,22 @@
             {
                 foreach (var edge in expandoObject.data.node.reactors.edges)
                 {
-                    var postInfo = new ReactorInfo
+                    var user = new FacebookUser
                     {
                         Id = edge.node?.id,
                         Name = edge.node?.name
                     };
 
-                    result.Reactors.Add(postInfo);
+                    result.Reactors.Add(user);
                 }
             }
 
-            if (expandoObject?.data?.node?.results?.page_info != null)
+            if (expandoObject?.data?.node?.reactors?.page_info != null)
             {
                 result.PageInfo = new PageInfo
                 {
-                    End_Cursor = expandoObject.data.node.results.page_info.end_cursor,
-                    Has_Next_Page = expandoObject.data.node.results.page_info.has_next_page
+                    End_Cursor = expandoObject.data.node.reactors.page_info.end_cursor,
+                    Has_Next_Page = expandoObject.data.node.reactors.page_info.has_next_page
                 };
             }
 

@@ -1,12 +1,19 @@
-﻿using FacebookAutomation.Services.ApiIntegration;
+﻿using FacebookAutomation.Factories;
+using FacebookAutomation.Models.Facebook;
+using Microsoft.Extensions.Hosting;
 
 public class Program
 {
 
     public static async Task Main(string[] args)
     {
-        var facebookIntegrationService = new FacebookIntegrationService();
-        await facebookIntegrationService.GetReatorsForPostByFeedbackId("ZmVlZGJhY2s6MTIyMTY2MDUzMDYwMjczNTM0");
+        var host = CreateHostBuilder(args).Build();
+
+        //var facebookIntegrationService = new FacebookIntegrationService();
+        //await facebookIntegrationService.GetReatorsForPostByFeedbackId("ZmVlZGJhY2s6MTIyMTY2MDUzMDYwMjczNTM0");
+
+
+        await FacebookDataFetcher.FetchData("movie", "10000");
     }
 
     /*
@@ -32,9 +39,101 @@ public class Program
 
 
         await BayutDataFetcher.FetchData(searchParameters);
-    }
-}
+    }*/
 
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureServices((hostContext, services) =>
+                {
+                    // Register services
+
+                });
+
+
+    public class FacebookDataFetcher
+    {
+        public static async Task FetchData(string search, string searchLimit)
+        {
+            int totalResults = 0, duplicateCount = 0, nullCount = 0, page = 0;
+            var seenContacts = new HashSet<string>();
+            var maxResults = Convert.ToInt32(searchLimit);
+
+            foreach (var type in Enum.GetValues(typeof(FacebookIntegrationServiceType)))
+            {
+                var facebookIntegrationService = FacebookIntegrationFactory.GetFacebookIntegrationService(FacebookIntegrationServiceType.Posts);
+                BaseResponse<BaseResponseModel>? searchResponse = null;
+
+                bool maxReached = false;
+                PageInfo? nextPage = null;
+
+                do
+                {
+                    searchResponse = await facebookIntegrationService.SendSearchRequestAsync(search, nextPage);
+                    if (searchResponse == null || searchResponse.Models == null || !searchResponse.Models.Any())
+                        break;
+
+                    nextPage = searchResponse.PageInfo;
+                    foreach (var model in searchResponse.Models)
+                    {
+                        if (maxReached)
+                            break;
+
+                        // Fetch users associated with the current model
+                        BaseResponse<FacebookUser> usersResponse;
+                        PageInfo? usersNextPage = null;
+
+                        do
+                        {
+                            usersResponse = await facebookIntegrationService.GetFacebookUsersFor(model, usersNextPage);
+                            if (usersResponse == null || usersResponse.Models == null || !usersResponse.Models.Any())
+                                break;
+
+                            usersNextPage = usersResponse.PageInfo;
+
+                            foreach (var user in usersResponse.Models)
+                            {
+                                string contactKey = $"{user.Id}-{user.Name}";
+
+                                if (string.IsNullOrWhiteSpace(contactKey.Replace("-", "")))
+                                {
+                                    nullCount++;
+                                    continue;
+                                }
+
+                                if (seenContacts.Contains(contactKey))
+                                {
+                                    duplicateCount++;
+                                    continue;
+                                }
+
+                                // Process valid contact
+                                seenContacts.Add(contactKey);
+                                Console.WriteLine(contactKey);
+                                totalResults++;
+
+                                if (totalResults >= maxResults)
+                                {
+                                    // We have reached the max result limit, no need to continue.
+                                    return;
+                                }
+                            }
+                        }
+                        while (usersResponse.PageInfo.Has_Next_Page);
+
+                        if (totalResults >= maxResults)
+                        {
+                            maxReached = true;
+                            break;
+                        }
+                    }
+
+                }
+                while (!maxReached && searchResponse.PageInfo.Has_Next_Page);
+            }
+        }
+    }
+
+    /*
 public class BayutDataFetcher
 {
     private const int HitsPerPage = 1000;
