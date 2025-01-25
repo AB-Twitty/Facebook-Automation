@@ -150,7 +150,7 @@ namespace FacebookAutomation.Services.Facebook
         }
 
         // Abstract methods that need to be implemented by subclasses
-        public abstract Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, PageInfo? nextPage = null);
-        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, PageInfo? nextPage = null);
+        public abstract Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null);
+        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null);
     }
 }

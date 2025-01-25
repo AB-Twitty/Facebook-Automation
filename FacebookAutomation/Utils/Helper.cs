@@ -5,7 +5,7 @@ namespace FacebookAutomation.Utils
 {
     public class Helper
     {
-        public static string GetCursorValue(PageInfo? nextPage)
+        public static string GetCursorValue(Pagination? nextPage)
         {
             return nextPage?.End_Cursor != null && nextPage.Has_Next_Page ? $"\"{nextPage.End_Cursor}\"" : "null";
         }

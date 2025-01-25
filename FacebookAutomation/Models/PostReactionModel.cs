@@ -4,7 +4,7 @@ namespace FacebookAutomation.Models
 {
     public class PostReactionsResult
     {
-        public PageInfo PageInfo { get; set; }
+        public Pagination Pagination { get; set; }
         public IList<FacebookUser> Reactors { get; set; }
     }
 
@@ -35,7 +35,7 @@ namespace FacebookAutomation.Models
 
             if (expandoObject?.data?.node?.reactors?.page_info != null)
             {
-                result.PageInfo = new PageInfo
+                result.Pagination = new Pagination
                 {
                     End_Cursor = expandoObject.data.node.reactors.page_info.end_cursor,
                     Has_Next_Page = expandoObject.data.node.reactors.page_info.has_next_page

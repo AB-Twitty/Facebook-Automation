@@ -64,7 +64,7 @@ public class Program
                 BaseResponse<BaseResponseModel>? searchResponse = null;
 
                 bool maxReached = false;
-                PageInfo? nextPage = null;
+                Pagination? nextPage = null;
 
                 do
                 {
@@ -72,7 +72,7 @@ public class Program
                     if (searchResponse == null || searchResponse.Models == null || !searchResponse.Models.Any())
                         break;
 
-                    nextPage = searchResponse.PageInfo;
+                    nextPage = searchResponse.Pagination;
                     foreach (var model in searchResponse.Models)
                     {
                         if (maxReached)
@@ -80,7 +80,7 @@ public class Program
 
                         // Fetch users associated with the current model
                         BaseResponse<FacebookUser> usersResponse;
-                        PageInfo? usersNextPage = null;
+                        Pagination? usersNextPage = null;
 
                         do
                         {
@@ -88,7 +88,7 @@ public class Program
                             if (usersResponse == null || usersResponse.Models == null || !usersResponse.Models.Any())
                                 break;
 
-                            usersNextPage = usersResponse.PageInfo;
+                            usersNextPage = usersResponse.Pagination;
 
                             foreach (var user in usersResponse.Models)
                             {
@@ -118,7 +118,7 @@ public class Program
                                 }
                             }
                         }
-                        while (usersResponse.PageInfo.Has_Next_Page);
+                        while (usersResponse.Pagination.Has_Next_Page);
 
                         if (totalResults >= maxResults)
                         {
@@ -128,7 +128,7 @@ public class Program
                     }
 
                 }
-                while (!maxReached && searchResponse.PageInfo.Has_Next_Page);
+                while (!maxReached && searchResponse.Pagination.Has_Next_Page);
             }
         }
     }

@@ -2,7 +2,7 @@
 {
     public class PostResharesModel
     {
-        public PageInfo PageInfo { get; set; }
+        public Pagination Pagination { get; set; }
         public IList<FacebookUser> Reshares_Users { get; set; }
     }
 
@@ -33,7 +33,7 @@
 
             if (expandoObject?.data?.node?.reshares?.page_info != null)
             {
-                result.PageInfo = new PageInfo
+                result.Pagination = new Pagination
                 {
                     End_Cursor = expandoObject.data.node.reshares.page_info.end_cursor,
                     Has_Next_Page = expandoObject.data.node.reshares.page_info.has_next_page

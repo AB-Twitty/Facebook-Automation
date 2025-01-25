@@ -2,7 +2,7 @@
 {
     public class PostCommentsModel
     {
-        public PageInfo PageInfo { get; set; }
+        public Pagination Pagination { get; set; }
         public IList<FacebookUser> CommentsUsers { get; set; }
     }
 
@@ -33,7 +33,7 @@
 
             if (expandoObject?.data?.node?.comment_rendering_instance_for_feed_location?.comments?.page_info != null)
             {
-                result.PageInfo = new PageInfo
+                result.Pagination = new Pagination
                 {
                     End_Cursor = expandoObject.data.node.comment_rendering_instance_for_feed_location.comments.page_info.end_cursor,
                     Has_Next_Page = expandoObject.data.node.comment_rendering_instance_for_feed_location.comments.page_info.has_next_page

@@ -4,7 +4,7 @@ namespace FacebookAutomation.Contracts.IFacebook
 {
     public interface IFacebookIntegrationService
     {
-        Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, PageInfo? nextPage = null);
-        Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, PageInfo? nextPage = null);
+        Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null);
+        Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null);
     }
 }

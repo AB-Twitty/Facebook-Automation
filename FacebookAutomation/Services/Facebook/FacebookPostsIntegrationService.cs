@@ -24,7 +24,7 @@ namespace FacebookAutomation.Services.Facebook
             ];
         }
 
-        public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, PageInfo? nextPage = null)
+        public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace FacebookAutomation.Services.Facebook
                     return new BaseResponse<BaseResponseModel>
                     {
                         Models = postInfoResults.Models.Cast<BaseResponseModel>().ToList(),
-                        PageInfo = postInfoResults.PageInfo
+                        Pagination = postInfoResults.Pagination
                     };
                 }
 
@@ -68,7 +68,7 @@ namespace FacebookAutomation.Services.Facebook
         }
 
 
-        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, PageInfo? nextPage = null)
+        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace FacebookAutomation.Services.Facebook
 
                 var feedbackUsersResponse = await FeedbackAlgo.GetUsersWithFeedbackOnPost(postInfoModel, nextPage);
 
-                if (feedbackUsersResponse.PageInfo == null || feedbackUsersResponse.PageInfo.Has_Next_Page == false)
+                if (feedbackUsersResponse.Pagination == null || feedbackUsersResponse.Pagination.Has_Next_Page == false)
                 {
                     var nextPageExists = true;
                     if (NextFeedbackAlgoIdx >= FeedbackAlgos.Length)
@@ -90,7 +90,7 @@ namespace FacebookAutomation.Services.Facebook
                     }
 
                     FeedbackAlgo = null;
-                    feedbackUsersResponse.PageInfo = new PageInfo
+                    feedbackUsersResponse.Pagination = new Pagination
                     {
                         End_Cursor = "",
                         Has_Next_Page = nextPageExists

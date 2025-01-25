@@ -9,8 +9,8 @@ namespace FacebookAutomation.Services.Facebook
     public class FacebookLoginAutomation
     {
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "############@####.com";
-        private const string Password = "*************";
+        private const string Username = "bobofawzy3@gmail.com";
+        private const string Password = "123@abdoFawzy";
 
         public static ReadOnlyCollection<Cookie> Login(string country = "Egypt")
         {

@@ -4,9 +4,9 @@ namespace FacebookAutomation.Models
 {
     public class PostInfoModel : BaseResponseModel
     {
-        public string StoryId { get; set; }
-        public string PostId { get; set; }
-        public string FeedbackId { get; set; }
+        public string? StoryId { get; set; }
+        public string? PostId { get; set; }
+        public string? FeedbackId { get; set; }
     }
 
     public class PostMapper
@@ -37,7 +37,7 @@ namespace FacebookAutomation.Models
 
             if (expandoObject?.data?.serpResponse?.results?.page_info != null)
             {
-                result.PageInfo = new PageInfo
+                result.Pagination = new Pagination
                 {
                     End_Cursor = expandoObject.data.serpResponse.results.page_info.end_cursor,
                     Has_Next_Page = expandoObject.data.serpResponse.results.page_info.has_next_page

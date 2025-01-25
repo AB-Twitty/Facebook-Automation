@@ -18,7 +18,7 @@ namespace FacebookAutomation.Services.Facebook
             Url = url;
         }
 
-        public async Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, PageInfo? pageInfo = null)
+        public async Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, Pagination? pageInfo = null)
         {
             // Form data as URL-encoded
             var fb_api_req_friendly_name = "CommentsListComponentsPaginationQuery";
@@ -46,7 +46,7 @@ namespace FacebookAutomation.Services.Facebook
                 return new BaseResponse<FacebookUser>
                 {
                     Models = postCommentsResult.CommentsUsers.Cast<FacebookUser>().ToList(),
-                    PageInfo = postCommentsResult.PageInfo
+                    Pagination = postCommentsResult.Pagination
                 };
             }
             else

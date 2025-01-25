@@ -5,6 +5,6 @@ namespace FacebookAutomation.Contracts.IFacebook
 {
     public interface IPostFeedbackService
     {
-        public Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, PageInfo? pageInfo = null);
+        public Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, Pagination? pageInfo = null);
     }
 }
