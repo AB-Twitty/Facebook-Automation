@@ -7,20 +7,20 @@ namespace FacebookAutomation.Factories
     {
         public static IFacebookIntegrationService GetFacebookIntegrationService(FacebookIntegrationServiceType type)
         {
-            switch (type)
+            return type switch
             {
-                case FacebookIntegrationServiceType.Posts:
-                    return new FacebookPostsIntegrationService();
-                default:
-                    return null;
-            }
+                FacebookIntegrationServiceType.Posts => new FacebookPostsIntegrationService(),
+                FacebookIntegrationServiceType.Pages => new FacebookPagesIntegrationService(),
+                _ => throw new Exception("Invalid FacebookIntegrationServiceType")
+            };
         }
     }
 
     public enum FacebookIntegrationServiceType
     {
-        Posts,
         Pages,
+        Posts,
+
         Groups
     }
 }
