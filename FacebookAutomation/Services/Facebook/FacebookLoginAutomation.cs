@@ -1,5 +1,8 @@
-﻿using OpenQA.Selenium;
+﻿using FacebookAutomation.Utils;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.DevTools;
+using OpenQA.Selenium.DevTools.V132.Network;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
@@ -9,72 +12,73 @@ namespace FacebookAutomation.Services.Facebook
     public class FacebookLoginAutomation
     {
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "bobofawzy3@gmail.com";
-        private const string Password = "123@abdoFawzy";
+        private const string Username = "twitty787@outlook.com";
+        private const string Password = "123456789TWITTY#";
 
-        public static ReadOnlyCollection<Cookie> Login(string country = "Egypt")
+        public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(string country = "Egypt")
         {
             IWebDriver driver = null;
             try
             {
+                // Set up Chrome options
                 ChromeOptions options = new ChromeOptions();
-                options.AddArguments("start-maximized");
-                options.AddArguments("--incognito");
-                //options.AddArguments("--headless"); // Uncomment to run in headless mode (no UI)
-                //options.AddArguments("--disable-gpu");
+                options.AddArguments("start-maximized", "--incognito");
 
-                // Initialize the WebDriver (Chrome in this case, can be changed)
+                // Initialize ChromeDriver with options
                 driver = new ChromeDriver(options);
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10)); // Waits up to 10 seconds for elements to appear
+
+                // Enable DevTools session
+                var devTools = driver as IDevTools;
+                var devToolsSession = devTools?.GetDevToolsSession();
+
+                if (devToolsSession != null)
+                {
+                    // Enable network monitoring
+                    var network = devToolsSession.GetVersionSpecificDomains<OpenQA.Selenium.DevTools.V132.DevToolsSessionDomains>().Network;
+                    network.Enable(new OpenQA.Selenium.DevTools.V132.Network.EnableCommandSettings());
+
+                    // Subscribe to network events
+                    network.RequestWillBeSent += OnRequestWillBeSent;
+                }
+
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
                 // Open Facebook login page
                 driver.Navigate().GoToUrl(FacebookLoginUrl);
 
-                // Set geolocation before interacting with the page
+                // Set geolocation (optional, if needed)
                 SetGeolocation(driver, country);
 
-                // Wait for email field to be visible and simulate typing
+                // Wait for the email field and simulate typing
                 var emailElement = wait.Until(d => d.FindElement(By.Id("email")));
                 SimulateTyping(driver, emailElement, Username);
                 Thread.Sleep(100);
 
-                // Wait for password field to be visible and simulate typing
+                // Wait for the password field and simulate typing
                 var passwordElement = wait.Until(d => d.FindElement(By.Id("pass")));
                 SimulateTyping(driver, passwordElement, Password);
                 Thread.Sleep(100);
 
-                // Wait for login button and click it
+                // Wait for the login button and click it
                 var loginButton = wait.Until(d => d.FindElement(By.Name("login")));
                 SimulateClick(driver, loginButton);
 
                 // Wait for the login process to complete
                 wait.Until(d => d.Url.Contains("https://www.facebook.com/"));
-                // An additional delay to ensure cookies are fully received and the page is completely loaded
                 Thread.Sleep(200);
 
-                // After login, extract cookies
+                // After login, capture the cookies
                 var cookies = driver.Manage().Cookies.AllCookies;
-
                 return cookies;
-            }
-            catch (NoSuchElementException ex)
-            {
-                Console.WriteLine("Error: Element not found - " + ex.Message);
-                throw ex;
-            }
-            catch (TimeoutException ex)
-            {
-                Console.WriteLine("Error: Timeout - " + ex.Message);
-                throw ex;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unexpected error: " + ex.Message);
-                throw ex;
+                Console.WriteLine("Error: " + ex.Message);
+                throw;
             }
             finally
             {
-                // Ensure the driver is properly disposed of, even in case of errors
+                // Ensure the driver is properly disposed
                 driver?.Quit();
             }
         }
@@ -117,31 +121,31 @@ namespace FacebookAutomation.Services.Facebook
             {
                 // Cairo, Egypt
                 script = @"
-                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                        var position = { coords: { latitude: 30.0444, longitude: 31.2357 } };  // Cairo, Egypt
-                        success(position);
-                    };
-                ";
+                                    navigator.geolocation.getCurrentPosition = function(success, error) {
+                                        var position = { coords: { latitude: 30.0444, longitude: 31.2357 } };  // Cairo, Egypt
+                                        success(position);
+                                    };
+                                ";
             }
             else if (country == "Lebanon")
             {
                 // Beirut, Lebanon
                 script = @"
-                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                        var position = { coords: { latitude: 33.8886, longitude: 35.4955 } };  // Beirut, Lebanon
-                        success(position);
-                    };
-                ";
+                                    navigator.geolocation.getCurrentPosition = function(success, error) {
+                                        var position = { coords: { latitude: 33.8886, longitude: 35.4955 } };  // Beirut, Lebanon
+                                        success(position);
+                                    };
+                                ";
             }
             else if (country == "Russia")
             {
                 // Moscow, Russia
                 script = @"
-                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                        var position = { coords: { latitude: 55.7558, longitude: 37.6173 } };  // Moscow, Russia
-                        success(position);
-                    };
-                ";
+                                    navigator.geolocation.getCurrentPosition = function(success, error) {
+                                        var position = { coords: { latitude: 55.7558, longitude: 37.6173 } };  // Moscow, Russia
+                                        success(position);
+                                    };
+                                ";
             }
 
             // Inject the JavaScript into the browser to spoof the geolocation
@@ -149,6 +153,33 @@ namespace FacebookAutomation.Services.Facebook
             {
                 ((IJavaScriptExecutor)driver).ExecuteScript(script);
                 Console.WriteLine($"Geolocation set to {country}.");
+            }
+        }
+
+        // Callback function to capture network requests
+        private static void OnRequestWillBeSent(object sender, RequestWillBeSentEventArgs e)
+        {
+            // Look for GraphQL requests (these will typically have the word "graphql" in the URL)
+            if (e.Request.Url.Contains("graphql"))
+            {
+                Console.WriteLine($"Request URL: {e.Request.Url}");
+
+                // Optionally, inspect the payload of the GraphQL request here (e.g., POST data)
+                // If you're looking for dtsg token, look at request data/headers
+                var postData = e.Request.PostData;
+
+                if (postData != null && postData.Contains("fb_dtsg"))
+                {
+                    // Decode the form data
+                    var decodedData = System.Web.HttpUtility.UrlDecode(postData);
+
+                    // Extract the dtsg token from the decoded data
+                    var tokenStartIndex = decodedData.IndexOf("fb_dtsg") + 8;
+                    var tokenEndIndex = decodedData.IndexOf("&", tokenStartIndex);
+                    var dtsgToken = decodedData.Substring(tokenStartIndex, tokenEndIndex - tokenStartIndex);
+                    Console.WriteLine($"Found dtsg Token: {dtsgToken}");
+                    FormDataState.Instance.SetDtsgToken(dtsgToken);
+                }
             }
         }
     }

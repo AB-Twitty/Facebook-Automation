@@ -2,44 +2,25 @@
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 using Newtonsoft.Json.Linq;
-using System.Net;
 
 namespace FacebookAutomation.Services.Facebook
 {
     public abstract class FacebookIntegrationService<TModel> : IFacebookIntegrationService where TModel : BaseResponseModel
     {
         protected readonly HttpClient _httpClient;
+        protected readonly Dictionary<string, string> _basicFormData;
         protected const string Url = "https://www.facebook.com/api/graphql/";
-        private const string Lsd = "AVo2Q6Qv";
-        private const string Jazoest = "22058";
-        private const bool ServerTimestamps = false;
-        private string Fb_Dtsg = "NAcMuQSLToj3CwhPmzPObc4PbnO23ShE7gLiHa6XurgY6ONI_xrXKgw:32:1737666094"; // Default value for dtsgToken
 
         public FacebookIntegrationService()
         {
-            _httpClient = new HttpClient();
+            _httpClient = HttpClientSingleton.Instance.HttpClient;
 
-            var cookies = FacebookLoginAutomation.Login();
-            ConfigureHttpClient(cookies).Wait();
-        }
-
-        private async Task ConfigureHttpClient(IReadOnlyCollection<OpenQA.Selenium.Cookie> cookies)
-        {
-            _httpClient.DefaultRequestHeaders.Clear();
-
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            _httpClient.DefaultRequestHeaders.Add("sec-fetch-site", "same-origin");
-
-            var cookieContainer = new CookieContainer();
-
-            foreach (var cookie in cookies)
+            if (!HttpClientSingleton.Instance.IsConfigured)
             {
-                cookieContainer.Add(new Uri(Url), ConvertToSystemNetCookie(cookie));
+                TryReLoginAsync().Wait();
             }
 
-            _httpClient.DefaultRequestHeaders.Add("Cookie", cookieContainer.GetCookieHeader(new Uri(Url)));
-
-            await SetDtsgTokenAsync();
+            _basicFormData = FormDataState.Instance.GetBaseFormData();
         }
 
         protected async Task SetDtsgTokenAsync()
@@ -66,11 +47,10 @@ namespace FacebookAutomation.Services.Facebook
             {
                 { "fb_api_req_friendly_name", fbApiReqFriendlyName },
                 { "variables", variables },
-                { "doc_id", docId.ToString() },
-                { "__a", "1" }
+                { "doc_id", docId.ToString() }
             };
 
-            var content = new FormUrlEncodedContent(extraFormData.Concat(GetBaseFormData()));
+            var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
             var response = await _httpClient.PostAsync(Url, content);
 
             return response;
@@ -89,7 +69,8 @@ namespace FacebookAutomation.Services.Facebook
                     if (!string.IsNullOrEmpty(jsonPart))
                     {
                         var jsonObject = JObject.Parse(jsonPart);
-                        Fb_Dtsg = jsonObject["dtsgToken"]?.ToString() ?? Fb_Dtsg;
+                        //FormDataState.Instance.Fb_Dtsg = jsonObject["dtsgToken"]?.ToString()
+                        //  ?? FormDataState.Instance.Fb_Dtsg;
                     }
                     else
                     {
@@ -107,28 +88,6 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
-        protected Dictionary<string, string> GetBaseFormData()
-        {
-            return new Dictionary<string, string>
-            {
-                { "fb_dtsg", Fb_Dtsg },
-                { "server_timestamps", ServerTimestamps.ToString() },
-                { "lsd", Lsd },
-                { "jazoest", Jazoest }
-            };
-        }
-
-        private Cookie ConvertToSystemNetCookie(OpenQA.Selenium.Cookie seleniumCookie)
-        {
-            return new Cookie(seleniumCookie.Name, seleniumCookie.Value)
-            {
-                Domain = seleniumCookie.Domain,
-                Path = seleniumCookie.Path,
-                Expires = seleniumCookie.Expiry ?? DateTime.MinValue,
-                Secure = seleniumCookie.Secure
-            };
-        }
-
         protected async Task TryReLoginAsync()
         {
             try
@@ -136,7 +95,8 @@ namespace FacebookAutomation.Services.Facebook
                 Console.WriteLine("Attempting to re-login...");
 
                 var cookies = FacebookLoginAutomation.Login();
-                await ConfigureHttpClient(cookies);
+                HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
+                //await SetDtsgTokenAsync();
 
                 Console.WriteLine("Re-login successful.");
             }
