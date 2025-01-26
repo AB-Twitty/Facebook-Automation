@@ -8,7 +8,7 @@
 
     public class PageMapper
     {
-        public BaseResponse<PageInfoModel> MapToPostInfoResult(dynamic expandoObject)
+        public BaseResponse<PageInfoModel> MapToPageInfoResult(dynamic expandoObject)
         {
             // Initialize the result object
             var result = new BaseResponse<PageInfoModel>

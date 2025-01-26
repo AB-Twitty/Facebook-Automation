@@ -7,20 +7,22 @@ namespace FacebookAutomation.Services.Facebook
 {
     public class FacebookPostsIntegrationService : FacebookIntegrationService<PostInfoModel>
     {
-        private readonly Dictionary<string, string> _basicFormData;
         private int NextFeedbackAlgoIdx { get; set; } = 0;
         private IPostFeedbackService? FeedbackAlgo;
         private IPostFeedbackService[] FeedbackAlgos;
 
         public FacebookPostsIntegrationService() : base()
         {
-            _basicFormData = GetBaseFormData();
+            SetFeedbackAlgoArray(_httpClient);
+        }
 
+        private void SetFeedbackAlgoArray(HttpClient httpClient)
+        {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(_httpClient, _basicFormData, Url),
-                new PostCommentsFetchingAlgo(_httpClient, _basicFormData, Url),
-                new PostResharesFetchingAlgo(_httpClient, _basicFormData, Url)
+                new PostReactorsFetchingAlgo(httpClient, _basicFormData, Url),
+                new PostCommentsFetchingAlgo(httpClient, _basicFormData, Url),
+                new PostResharesFetchingAlgo(httpClient, _basicFormData, Url)
             ];
         }
 
@@ -61,7 +63,7 @@ namespace FacebookAutomation.Services.Facebook
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during SendSearchRequestAsync: {ex.Message}");
+                Console.WriteLine($"Error during SendSearchRequestAsync to fetch the next post: {ex.Message}");
                 await TryReLoginAsync();
                 return await SendSearchRequestAsync(search, nextPage);
             }
@@ -101,7 +103,7 @@ namespace FacebookAutomation.Services.Facebook
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during GetFacebookUsersFor: {ex.Message}");
+                Console.WriteLine($"Error during GetFacebookUsersFor post: {ex.Message}");
                 await TryReLoginAsync();
                 return await GetFacebookUsersFor(model, nextPage);
             }

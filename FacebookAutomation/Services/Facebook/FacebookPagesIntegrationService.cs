@@ -1,14 +1,13 @@
-﻿using FacebookAutomation.Models.Facebook;
+﻿using FacebookAutomation.Models;
+using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
 namespace FacebookAutomation.Services.Facebook
 {
     public class FacebookPagesIntegrationService : FacebookIntegrationService<PageInfoModel>
     {
-        private readonly Dictionary<string, string> _basicFormData;
         public FacebookPagesIntegrationService() : base()
         {
-            _basicFormData = GetBaseFormData();
         }
 
         public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)
@@ -34,7 +33,7 @@ namespace FacebookAutomation.Services.Facebook
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
                     var pageMapper = new PageMapper();
-                    var pageInfoResults = pageMapper.MapToPostInfoResult(jsonObj);
+                    var pageInfoResults = pageMapper.MapToPageInfoResult(jsonObj);
 
                     return new BaseResponse<BaseResponseModel>
                     {
@@ -53,9 +52,84 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
-        public override Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null)
+        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPostPage = null)
         {
-            throw new NotImplementedException();
+            var limit = 100;
+            var totalResults = 0;
+
+            var pageInfoModel = model as PageInfoModel;
+            if (pageInfoModel == null)
+                return new BaseResponse<FacebookUser>();
+
+            //send request to fetch the next post using next page cursor
+            var postResponse = await FetchPostFromPage(pageInfoModel, nextPostPage);
+            if (postResponse == null || postResponse.Models == null || !postResponse.Models.Any())
+                return new BaseResponse<FacebookUser>();
+
+            var postIntegrationService = new FacebookPostsIntegrationService();
+
+            IEnumerable<FacebookUser> users = new List<FacebookUser>();
+
+            Pagination usersNextPage = null;
+            do
+            {
+                var newUsersResposne = await postIntegrationService.GetFacebookUsersFor(postResponse.Models.First(), usersNextPage);
+
+                users = users.Concat(newUsersResposne.Models);
+
+                usersNextPage = newUsersResposne.Pagination;
+
+                totalResults += newUsersResposne.Models.Count;
+
+            } while (totalResults < limit && usersNextPage.Has_Next_Page);
+
+            return new BaseResponse<FacebookUser>
+            {
+                Models = users.ToList(),
+                Pagination = postResponse.Pagination
+            };
+        }
+
+        private async Task<BaseResponse<PostInfoModel>> FetchPostFromPage(PageInfoModel pageInfo, Pagination? nextPage = null)
+        {
+            try
+            {
+                // Form data as URL-encoded
+                var fbApiReqFriendlyName = "ProfileCometTimelineFeedRefetchQuery";
+                var cursorValue = Helper.GetCursorValue(nextPage);
+                var variables = "{\"afterTime\":null,\"beforeTime\":null,\"count\":3,\"cursor\":" + cursorValue + ",\"feedLocation\":\"TIMELINE\",\"feedbackSource\":0,\"focusCommentID\":null,\"memorializedSplitTimeFilter\":null,\"omitPinnedPost\":true,\"postedBy\":{\"group\":\"OWNER\"},\"privacy\":null,\"privacySelectorRenderLocation\":\"COMET_STREAM\",\"renderLocation\":\"timeline\",\"scale\":1,\"stream_count\":1,\"taggedInOnly\":null,\"trackingCode\":null,\"useDefaultActor\":false,\"id\":\"" + pageInfo.Id + "\",\"__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider\":false,\"__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider\":false,\"__relay_internal__pv__IsWorkUserrelayprovider\":false,\"__relay_internal__pv__CometFeedStoryDynamicResolutionPhotoAttachmentRenderer_experimentWidthrelayprovider\":500,\"__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider\":false,\"__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider\":false,\"__relay_internal__pv__IsMergQAPollsrelayprovider\":false,\"__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider\":false,\"__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider\":false,\"__relay_internal__pv__CometUFIShareActionMigrationrelayprovider\":true,\"__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider\":true,\"__relay_internal__pv__EventCometCardImage_prefetchEventImagerelayprovider\":false}";
+                var docId = 9278858502175880;
+                var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var response = await _httpClient.PostAsync(Url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonObj = await Helper.DeserializeResponseToDynamic(response);
+                    var postMapper = new PostFromPageMapper();
+                    var postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
+
+                    return new BaseResponse<PostInfoModel>
+                    {
+                        Models = postInfoResults.Models,
+                        Pagination = postInfoResults.Pagination
+                    };
+                }
+
+                throw new Exception("Request failed with status code: " + response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during Fetching post from page with id ({pageInfo.Id}) : {ex.Message}");
+                await TryReLoginAsync();
+                return await FetchPostFromPage(pageInfo, nextPage);
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ public class Program
         //await facebookIntegrationService.GetReatorsForPostByFeedbackId("ZmVlZGJhY2s6MTIyMTY2MDUzMDYwMjczNTM0");
 
 
-        await FacebookDataFetcher.FetchData("Red Dead Redemption", "10000");
+        await FacebookDataFetcher.FetchData("Red Dead Redemption 2", "10000");
     }
 
     /*
