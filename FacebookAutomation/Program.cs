@@ -12,6 +12,7 @@ public class Program
 
 
         var postService = new FacebookPostsIntegrationService();
+
         await postService.ReactOnPost(new FacebookAutomation.Models.PostInfoModel
         {
             StoryId = "UzpfSUZTOjE6LTQ3NDMyMjcxNzE4NzAxNDAyNjplSndUNjVnMmVmR0VXYmQzZkdYVWxCRzcxM3pyMTVYZXVTeWlmR0x2cm41YXZXNi9ydGl6UlN0LzhvaHQycjcxSjQ4MG85c0tlVFZOR1pGM3pHb01wbUFKTXdZeGhqU28wdFZNYmxmRW1YNHhmVHU5c0FOa2lEU2p4NVFHSnFiRUlyaXgwZ3dNRE9JT3IvT2ZNREF3TUtnS1NUTzVTY0drN2drd21hMi90UGJBcTZZZjd5WXlwaktJc3VoSU16YnlaUmJIRjZlV3hHZm14YWVscHFZd1NqTmdod3c4WG1JTU1VSkNEQXhKcGd3TUFCbjZUUUk9",
@@ -20,7 +21,9 @@ public class Program
         }, Reactions.LOVE);
 
 
-        //await FacebookDataFetcher.FetchData("فيلم", "2000");
+        //await FacebookDataFetcher.FetchData("rdr 2", "2000");
+
+        await FacebookLogoutAutomation.Logout();
     }
 
     /*

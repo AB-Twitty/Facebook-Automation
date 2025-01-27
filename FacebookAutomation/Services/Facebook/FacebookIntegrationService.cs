@@ -93,7 +93,7 @@ namespace FacebookAutomation.Services.Facebook
             try
             {
                 Console.WriteLine("Attempting to re-login...");
-
+                await FacebookLogoutAutomation.Logout();
                 var cookies = FacebookLoginAutomation.Login();
                 HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
                 //await SetDtsgTokenAsync();
