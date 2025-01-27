@@ -20,7 +20,7 @@ namespace FacebookAutomation.Services.Facebook
                 TryReLoginAsync().Wait();
             }
 
-            _basicFormData = FormDataState.Instance.GetBaseFormData();
+            _basicFormData = FormDataState.Instance.GetAllFormData();
         }
 
         protected async Task SetDtsgTokenAsync()

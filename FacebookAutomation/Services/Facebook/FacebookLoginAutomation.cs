@@ -6,14 +6,18 @@ using OpenQA.Selenium.DevTools.V132.Network;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
+using System.Web;
 
 namespace FacebookAutomation.Services.Facebook
 {
     public class FacebookLoginAutomation
     {
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "twitty787@outlook.com";
-        private const string Password = "123456789TWITTY#";
+        //private const string Username = "twitty787@outlook.com";
+        //private const string Password = "123456789TWITTY#";
+
+        private const string Username = "mohamedabdelghaffar122@outlook.com";
+        private const string Password = "123@mohammed";
 
         public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(string country = "Egypt")
         {
@@ -162,23 +166,28 @@ namespace FacebookAutomation.Services.Facebook
             // Look for GraphQL requests (these will typically have the word "graphql" in the URL)
             if (e.Request.Url.Contains("graphql"))
             {
-                Console.WriteLine($"Request URL: {e.Request.Url}");
-
                 // Optionally, inspect the payload of the GraphQL request here (e.g., POST data)
-                // If you're looking for dtsg token, look at request data/headers
                 var postData = e.Request.PostData;
 
-                if (postData != null && postData.Contains("fb_dtsg"))
+                if (postData != null)
                 {
                     // Decode the form data
-                    var decodedData = System.Web.HttpUtility.UrlDecode(postData);
+                    var decodedData = HttpUtility.UrlDecode(postData);
 
-                    // Extract the dtsg token from the decoded data
-                    var tokenStartIndex = decodedData.IndexOf("fb_dtsg") + 8;
-                    var tokenEndIndex = decodedData.IndexOf("&", tokenStartIndex);
-                    var dtsgToken = decodedData.Substring(tokenStartIndex, tokenEndIndex - tokenStartIndex);
-                    Console.WriteLine($"Found dtsg Token: {dtsgToken}");
-                    FormDataState.Instance.SetDtsgToken(dtsgToken);
+                    // Split the form data into key-value pairs
+                    var formDataPairs = decodedData.Split('&');
+
+                    // Add each key-value pair to the FormDataState
+                    foreach (var pair in formDataPairs)
+                    {
+                        var keyValue = pair.Split('=');
+                        if (keyValue.Length == 2)
+                        {
+                            var key = keyValue[0];
+                            var value = keyValue[1];
+                            FormDataState.Instance.SetFormData(key, value);
+                        }
+                    }
                 }
             }
         }

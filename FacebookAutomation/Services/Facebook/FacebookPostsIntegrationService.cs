@@ -108,5 +108,35 @@ namespace FacebookAutomation.Services.Facebook
                 return await GetFacebookUsersFor(model, nextPage);
             }
         }
+
+        public async Task<bool> ReactOnPost(PostInfoModel postInfo, string reaction)
+        {
+            try
+            {
+                var fbApiReqFriendlyName = "CometUFIFeedbackReactMutation";
+                var variables = "{\"input\":{\"attribution_id_v2\":null,\"feedback_id\":\"" + postInfo.FeedbackId + "\",\"feedback_reaction_id\":\"" + reaction + "\",\"feedback_source\":\"NEWS_FEED\",\"feedback_referrer\":\"/privacy/consent/\",\"is_tracking_encrypted\":true,\"tracking\":null,\"session_id\":null,\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"client_mutation_id\":\"3\"},\"useDefaultActor\":false,\"__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider\":false}";
+                var docId = 8995964513767096;
+                var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var response = await _httpClient.PostAsync(Url, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                throw new Exception($"Request failed with for post with id ({postInfo.PostId}) status code: " + response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during ReactOnPost: {ex.Message}");
+                await TryReLoginAsync();
+                return await ReactOnPost(postInfo, reaction);
+            }
+        }
     }
 }

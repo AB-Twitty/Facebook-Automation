@@ -6,26 +6,48 @@
 
         public static FormDataState Instance => _instance.Value;
 
-        public string Fb_Dtsg { get; private set; }
-        public const string Lsd = "AVo2Q6Qv";
-        public const string Jazoest = "22058";
-        public const bool ServerTimestamps = false;
+        private readonly Dictionary<string, string> _formData;
 
-        public Dictionary<string, string> GetBaseFormData()
+        private static IList<string> KeysToExclude => new List<string>
         {
-            return new Dictionary<string, string>
-            {
-                { "fb_dtsg", Fb_Dtsg },
-                { "server_timestamps", ServerTimestamps.ToString() },
-                { "lsd", Lsd },
-                { "jazoest", Jazoest },
-                { "__a", "1" }
-            };
+            "fb_api_req_friendly_name",
+            "variables",
+            "doc_id"
+        };
+
+        private FormDataState()
+        {
+            _formData = new Dictionary<string, string>();
         }
 
-        public void SetDtsgToken(string dtsgToken)
+        public void SetFormData(string key, string value)
         {
-            Fb_Dtsg = dtsgToken;
+            if (KeysToExclude.Contains(key))
+                return;
+
+            if (_formData.ContainsKey(key))
+            {
+                _formData[key] = value;
+            }
+            else
+            {
+                _formData.Add(key, value);
+            }
+        }
+
+        public string GetFormData(string key)
+        {
+            return _formData.ContainsKey(key) ? _formData[key] : "";
+        }
+
+        public Dictionary<string, string> GetAllFormData()
+        {
+            return new Dictionary<string, string>(_formData);
+        }
+
+        public string GetUserId()
+        {
+            return GetFormData("__user");
         }
     }
 }

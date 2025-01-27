@@ -1,5 +1,6 @@
 ﻿using FacebookAutomation.Factories;
 using FacebookAutomation.Models.Facebook;
+using FacebookAutomation.Services.Facebook;
 using Microsoft.Extensions.Hosting;
 
 public class Program
@@ -9,11 +10,17 @@ public class Program
     {
         var host = CreateHostBuilder(args).Build();
 
-        //var facebookIntegrationService = new FacebookIntegrationService();
-        //await facebookIntegrationService.GetReatorsForPostByFeedbackId("ZmVlZGJhY2s6MTIyMTY2MDUzMDYwMjczNTM0");
+
+        var postService = new FacebookPostsIntegrationService();
+        await postService.ReactOnPost(new FacebookAutomation.Models.PostInfoModel
+        {
+            StoryId = "UzpfSUZTOjE6LTQ3NDMyMjcxNzE4NzAxNDAyNjplSndUNjVnMmVmR0VXYmQzZkdYVWxCRzcxM3pyMTVYZXVTeWlmR0x2cm41YXZXNi9ydGl6UlN0LzhvaHQycjcxSjQ4MG85c0tlVFZOR1pGM3pHb01wbUFKTXdZeGhqU28wdFZNYmxmRW1YNHhmVHU5c0FOa2lEU2p4NVFHSnFiRUlyaXgwZ3dNRE9JT3IvT2ZNREF3TUtnS1NUTzVTY0drN2drd21hMi90UGJBcTZZZjd5WXlwaktJc3VoSU16YnlaUmJIRjZlV3hHZm14YWVscHFZd1NqTmdod3c4WG1JTU1VSkNEQXhKcGd3TUFCbjZUUUk9",
+            FeedbackId = "ZmVlZGJhY2s6MTE4OTkwNjMyMjUwNTk2Nw==",
+            PostId = "1189906202505979"
+        }, Reactions.LOVE);
 
 
-        await FacebookDataFetcher.FetchData("Red Dead Redemption 2", "10000");
+        //await FacebookDataFetcher.FetchData("فيلم", "2000");
     }
 
     /*
