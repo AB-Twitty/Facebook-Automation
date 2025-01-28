@@ -8,12 +8,12 @@
 
         private readonly Dictionary<string, string> _formData;
 
-        private static IList<string> KeysToExclude => new List<string>
-        {
+        private IList<string> KeysToExclude =>
+        [
             "fb_api_req_friendly_name",
             "variables",
             "doc_id"
-        };
+        ];
 
         private FormDataState()
         {
@@ -23,7 +23,9 @@
         public void SetFormData(string key, string value)
         {
             if (KeysToExclude.Contains(key))
+            {
                 return;
+            }
 
             if (_formData.ContainsKey(key))
             {
@@ -42,7 +44,7 @@
 
         public Dictionary<string, string> GetAllFormData()
         {
-            return new Dictionary<string, string>(_formData);
+            return _formData;
         }
 
         public string GetUserId()

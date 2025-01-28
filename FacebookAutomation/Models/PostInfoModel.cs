@@ -75,11 +75,11 @@ namespace FacebookAutomation.Models
                 }
             }
 
-            if (expandoObject?.data?.node?.timeline_list_feed_units?.edges[0]?.cursor != null)
+            if (expandoObject?.data?.node?.timeline_list_feed_units?.edges?[0]?.cursor != null)
             {
                 result.Pagination = new Pagination
                 {
-                    End_Cursor = expandoObject?.data?.node?.timeline_list_feed_units?.edges[0]?.cursor,
+                    End_Cursor = expandoObject?.data?.node?.timeline_list_feed_units?.edges?[0]?.cursor,
                     Has_Next_Page = true
                 };
 

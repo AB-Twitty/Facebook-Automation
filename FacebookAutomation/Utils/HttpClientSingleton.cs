@@ -23,9 +23,6 @@ namespace FacebookAutomation.Utils
             HttpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
             HttpClient.DefaultRequestHeaders.Add("sec-fetch-site", "same-origin");
 
-            HttpClient.DefaultRequestHeaders.Add("x-asbd-id", "129477");
-            HttpClient.DefaultRequestHeaders.Add("x-fb-lsd", FormDataState.Instance.GetFormData("lsd"));
-
             var cookieContainer = new CookieContainer();
 
             foreach (var cookie in cookies)

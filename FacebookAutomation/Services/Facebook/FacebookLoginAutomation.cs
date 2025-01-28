@@ -13,11 +13,8 @@ namespace FacebookAutomation.Services.Facebook
     public class FacebookLoginAutomation
     {
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        //private const string Username = "twitty787@outlook.com";
-        //private const string Password = "123456789TWITTY#";
-
-        private const string Username = "mohamedabdelghaffar122@outlook.com";
-        private const string Password = "123@mohammed";
+        private const string Username = "bobofawzy3@gmail.com";
+        private const string Password = "123@abdoFawzy";
 
         public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(string country = "Egypt")
         {
@@ -160,34 +157,47 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
+        private static readonly object lockObject = new object();
+        private static bool isRequestProcessed = false;
+
         // Callback function to capture network requests
         private static void OnRequestWillBeSent(object sender, RequestWillBeSentEventArgs e)
         {
             // Look for GraphQL requests (these will typically have the word "graphql" in the URL)
             if (e.Request.Url.Contains("graphql"))
             {
-                // Optionally, inspect the payload of the GraphQL request here (e.g., POST data)
-                var postData = e.Request.PostData;
-
-                if (postData != null)
+                lock (lockObject)
                 {
-                    // Decode the form data
-                    var decodedData = HttpUtility.UrlDecode(postData);
-
-                    // Split the form data into key-value pairs
-                    var formDataPairs = decodedData.Split('&');
-
-                    // Add each key-value pair to the FormDataState
-                    foreach (var pair in formDataPairs)
+                    if (isRequestProcessed)
                     {
-                        var keyValue = pair.Split('=');
-                        if (keyValue.Length == 2)
+                        return;
+                    }
+
+                    // Optionally, inspect the payload of the GraphQL request here (e.g., POST data)
+                    var postData = e.Request.PostData;
+
+                    if (postData != null)
+                    {
+                        // Decode the form data
+                        var decodedData = HttpUtility.UrlDecode(postData);
+
+                        // Split the form data into key-value pairs
+                        var formDataPairs = decodedData.Split('&');
+
+                        // Add each key-value pair to the FormDataState
+                        foreach (var pair in formDataPairs)
                         {
-                            var key = keyValue[0];
-                            var value = keyValue[1];
-                            FormDataState.Instance.SetFormData(key, value);
+                            var keyValue = pair.Split('=');
+                            if (keyValue.Length == 2)
+                            {
+                                var key = keyValue[0];
+                                var value = keyValue[1];
+                                FormDataState.Instance.SetFormData(key, value);
+                            }
                         }
                     }
+
+                    isRequestProcessed = true;
                 }
             }
         }

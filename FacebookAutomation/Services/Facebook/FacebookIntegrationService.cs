@@ -1,14 +1,12 @@
 ﻿using FacebookAutomation.Contracts.IFacebook;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
-using Newtonsoft.Json.Linq;
 
 namespace FacebookAutomation.Services.Facebook
 {
     public abstract class FacebookIntegrationService<TModel> : IFacebookIntegrationService where TModel : BaseResponseModel
     {
         protected readonly HttpClient _httpClient;
-        protected readonly Dictionary<string, string> _basicFormData;
         protected const string Url = "https://www.facebook.com/api/graphql/";
 
         public FacebookIntegrationService()
@@ -19,11 +17,50 @@ namespace FacebookAutomation.Services.Facebook
             {
                 TryReLoginAsync().Wait();
             }
-
-            _basicFormData = FormDataState.Instance.GetAllFormData();
         }
 
-        protected async Task SetDtsgTokenAsync()
+        protected Dictionary<string, string> GetRequestFullFormData(Dictionary<string, string> extraFormData)
+        {
+            var fullFormData = FormDataState.Instance.GetAllFormData();
+
+            foreach (var kvp in extraFormData)
+            {
+                fullFormData[kvp.Key] = kvp.Value;
+            }
+
+            return fullFormData;
+        }
+
+        protected async Task TryReLoginAsync()
+        {
+            try
+            {
+                Console.WriteLine("Attempting to re-login...");
+                await FacebookLogoutAutomation.Logout();
+                var cookies = FacebookLoginAutomation.Login();
+                HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
+                //await SetDtsgTokenAsync();
+
+                Console.WriteLine("Re-login successful.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Re-login failed: {ex.Message}. Retrying...");
+
+                await Task.Delay(5000);
+                await TryReLoginAsync();
+            }
+        }
+
+        // Abstract methods that need to be implemented by subclasses
+        public abstract Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null);
+        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null);
+
+
+
+
+        /*
+         protected async Task SetDtsgTokenAsync()
         {
             try
             {
@@ -87,30 +124,7 @@ namespace FacebookAutomation.Services.Facebook
                 Console.WriteLine($"Request failed with status code: {response.StatusCode}");
             }
         }
-
-        protected async Task TryReLoginAsync()
-        {
-            try
-            {
-                Console.WriteLine("Attempting to re-login...");
-                await FacebookLogoutAutomation.Logout();
-                var cookies = FacebookLoginAutomation.Login();
-                HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
-                //await SetDtsgTokenAsync();
-
-                Console.WriteLine("Re-login successful.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Re-login failed: {ex.Message}. Retrying...");
-
-                await Task.Delay(5000);
-                await TryReLoginAsync();
-            }
-        }
-
-        // Abstract methods that need to be implemented by subclasses
-        public abstract Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null);
-        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null);
+         
+         */
     }
 }

@@ -20,9 +20,9 @@ namespace FacebookAutomation.Services.Facebook
         {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(httpClient, _basicFormData, Url),
-                new PostCommentsFetchingAlgo(httpClient, _basicFormData, Url),
-                new PostResharesFetchingAlgo(httpClient, _basicFormData, Url)
+                new PostReactorsFetchingAlgo(httpClient, Url),
+                new PostCommentsFetchingAlgo(httpClient, Url),
+                new PostResharesFetchingAlgo(httpClient, Url)
             ];
         }
 
@@ -43,7 +43,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
@@ -122,7 +122,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "variables", variables },
                     { "doc_id", docId.ToString() }
                 };
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
                 var response = await _httpClient.PostAsync(Url, content);
                 if (response.IsSuccessStatusCode)
                 {

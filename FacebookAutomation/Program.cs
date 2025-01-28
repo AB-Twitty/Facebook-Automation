@@ -10,7 +10,7 @@ public class Program
     {
         var host = CreateHostBuilder(args).Build();
 
-
+        /*
         var postService = new FacebookPostsIntegrationService();
 
         await postService.ReactOnPost(new FacebookAutomation.Models.PostInfoModel
@@ -19,9 +19,9 @@ public class Program
             FeedbackId = "ZmVlZGJhY2s6MTE4OTkwNjMyMjUwNTk2Nw==",
             PostId = "1189906202505979"
         }, Reactions.LOVE);
+        */
 
-
-        //await FacebookDataFetcher.FetchData("rdr 2", "2000");
+        await FacebookDataFetcher.FetchData("لعبة red dead redemption 2", "10000");
 
         await FacebookLogoutAutomation.Logout();
     }

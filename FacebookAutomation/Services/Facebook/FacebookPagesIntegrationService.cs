@@ -26,7 +26,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
@@ -106,14 +106,28 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
-                    var postMapper = new PostFromPageMapper();
-                    var postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
+                    BaseResponse<PostInfoModel> postInfoResults = new BaseResponse<PostInfoModel>
+                    {
+                        Models = new List<PostInfoModel>(),
+                        Pagination = new Pagination { Has_Next_Page = false }
+                    };
+
+                    try
+                    {
+                        var postMapper = new PostFromPageMapper();
+                        postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error in mapping the post, stopping this pagination : {ex.Message}");
+                    }
+
 
                     return new BaseResponse<PostInfoModel>
                     {

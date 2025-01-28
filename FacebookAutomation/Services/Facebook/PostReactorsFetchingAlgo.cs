@@ -8,13 +8,11 @@ namespace FacebookAutomation.Services.Facebook
     public class PostReactorsFetchingAlgo : IPostFeedbackService
     {
         private readonly HttpClient _httpClient;
-        private Dictionary<string, string> _formData;
         private readonly string Url;
 
-        public PostReactorsFetchingAlgo(HttpClient httpClient, Dictionary<string, string> formData, string url)
+        public PostReactorsFetchingAlgo(HttpClient httpClient, string url)
         {
             _httpClient = httpClient;
-            _formData = formData;
             Url = url;
         }
 
@@ -33,7 +31,7 @@ namespace FacebookAutomation.Services.Facebook
                 { "doc_id", doc_id.ToString() }
             };
 
-            var content = new FormUrlEncodedContent(_formData.Concat(extraformData));
+            var content = new FormUrlEncodedContent(extraformData.Concat(FormDataState.Instance.GetAllFormData()));
             var response = await _httpClient.PostAsync(Url, content);
 
             if (response.IsSuccessStatusCode)
