@@ -8,12 +8,14 @@ namespace FacebookAutomation.Services.Facebook
     public class PostResharesFetchingAlgo : IPostFeedbackService
     {
         private readonly HttpClient _httpClient;
+        private readonly Dictionary<string, string> _baseFormData;
         private readonly string Url;
 
-        public PostResharesFetchingAlgo(HttpClient httpClient, string url)
+        public PostResharesFetchingAlgo(HttpClient httpClient, string url, Dictionary<string, string> baseFormData)
         {
             _httpClient = httpClient;
             Url = url;
+            _baseFormData = baseFormData;
         }
 
         public async Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, Pagination? pageInfo = null)
@@ -31,7 +33,7 @@ namespace FacebookAutomation.Services.Facebook
                 { "doc_id", doc_id.ToString() }
             };
 
-            var content = new FormUrlEncodedContent(extraformData.Concat(FormDataState.Instance.GetAllFormData()));
+            var content = new FormUrlEncodedContent(extraformData.Concat(_baseFormData));
             var response = await _httpClient.PostAsync(Url, content);
 
             if (response.IsSuccessStatusCode)

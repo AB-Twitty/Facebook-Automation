@@ -21,7 +21,7 @@ public class Program
         }, Reactions.LOVE);
         */
 
-        await FacebookDataFetcher.FetchData("لعبة red dead redemption 2", "10000");
+        await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
 
         await FacebookLogoutAutomation.Logout();
     }
@@ -94,7 +94,7 @@ public class Program
 
                         do
                         {
-                            usersResponse = await facebookIntegrationService.GetFacebookUsersFor(model, usersNextPage);
+                            usersResponse = await facebookIntegrationService.GetFacebookUsersFor(model, usersNextPage, maxResults - totalResults);
                             if (usersResponse == null || usersResponse.Models == null || !usersResponse.Models.Any())
                                 break;
 

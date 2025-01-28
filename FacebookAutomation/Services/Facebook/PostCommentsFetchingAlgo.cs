@@ -8,12 +8,14 @@ namespace FacebookAutomation.Services.Facebook
     public class PostCommentsFetchingAlgo : IPostFeedbackService
     {
         private readonly HttpClient _httpClient;
+        private readonly Dictionary<string, string> _basicFormData;
         private readonly string Url;
 
-        public PostCommentsFetchingAlgo(HttpClient httpClient, string url)
+        public PostCommentsFetchingAlgo(HttpClient httpClient, string url, Dictionary<string, string> basicFormData)
         {
             _httpClient = httpClient;
             Url = url;
+            _basicFormData = basicFormData;
         }
 
         public async Task<BaseResponse<FacebookUser>> GetUsersWithFeedbackOnPost(PostInfoModel postInfo, Pagination? pageInfo = null)
@@ -31,7 +33,7 @@ namespace FacebookAutomation.Services.Facebook
                 { "doc_id", doc_id.ToString() }
             };
 
-            var content = new FormUrlEncodedContent(extraformData.Concat(FormDataState.Instance.GetAllFormData()));
+            var content = new FormUrlEncodedContent(extraformData.Concat(_basicFormData));
             var response = await _httpClient.PostAsync(Url, content);
 
             if (response.IsSuccessStatusCode)

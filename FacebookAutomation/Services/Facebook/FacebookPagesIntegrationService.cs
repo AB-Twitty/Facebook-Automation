@@ -27,7 +27,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
@@ -58,9 +58,8 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
-        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPostPage = null)
+        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPostPage = null, int limit = 0)
         {
-            var limit = 100;
             var totalResults = 0;
 
             var pageInfoModel = model as PageInfoModel;
@@ -112,28 +111,14 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
-                    BaseResponse<PostInfoModel> postInfoResults = new BaseResponse<PostInfoModel>
-                    {
-                        Models = new List<PostInfoModel>(),
-                        Pagination = new Pagination { Has_Next_Page = false }
-                    };
-
-                    try
-                    {
-                        var postMapper = new PostFromPageMapper();
-                        postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error in mapping the post, stopping this pagination : {ex.Message}");
-                    }
-
+                    var postMapper = new PostFromPageMapper();
+                    var postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
 
                     return new BaseResponse<PostInfoModel>
                     {

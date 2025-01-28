@@ -7,6 +7,7 @@ namespace FacebookAutomation.Services.Facebook
     public abstract class FacebookIntegrationService<TModel> : IFacebookIntegrationService where TModel : BaseResponseModel
     {
         protected readonly HttpClient _httpClient;
+        protected readonly Dictionary<string, string> _basicFormData;
         protected const string Url = "https://www.facebook.com/api/graphql/";
 
         public FacebookIntegrationService()
@@ -17,6 +18,8 @@ namespace FacebookAutomation.Services.Facebook
             {
                 TryReLoginAsync().Wait();
             }
+
+            _basicFormData = FormDataState.Instance.GetAllFormData();
         }
 
         protected Dictionary<string, string> GetRequestFullFormData(Dictionary<string, string> extraFormData)
@@ -54,7 +57,7 @@ namespace FacebookAutomation.Services.Facebook
 
         // Abstract methods that need to be implemented by subclasses
         public abstract Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null);
-        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null);
+        public abstract Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null, int limit = 0);
 
 
 

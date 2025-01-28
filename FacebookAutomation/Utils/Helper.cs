@@ -8,7 +8,10 @@ namespace FacebookAutomation.Utils
     {
         public static string GetCursorValue(Pagination? nextPage)
         {
-            return nextPage?.End_Cursor != null && nextPage.Has_Next_Page ? $"\"{nextPage.End_Cursor}\"" : "null";
+            if (nextPage == null)
+                return "null";
+
+            return !string.IsNullOrEmpty(nextPage.End_Cursor) && nextPage.Has_Next_Page ? $"\"{nextPage.End_Cursor}\"" : "null";
         }
 
         public static JObject DeserializeJson(string content)

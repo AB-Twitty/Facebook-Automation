@@ -16,9 +16,9 @@ namespace FacebookAutomation.Services.Facebook
         {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(_httpClient, Url),
-                new PostCommentsFetchingAlgo(_httpClient, Url),
-                new PostResharesFetchingAlgo(_httpClient, Url)
+                new PostReactorsFetchingAlgo(_httpClient, Url, _basicFormData),
+                new PostCommentsFetchingAlgo(_httpClient, Url, _basicFormData),
+                new PostResharesFetchingAlgo(_httpClient, Url, _basicFormData)
             ];
         }
 
@@ -39,7 +39,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "doc_id", docId.ToString() }
                 };
 
-                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
                 var response = await _httpClient.PostAsync(Url, content);
 
                 if (response.IsSuccessStatusCode)
@@ -71,7 +71,7 @@ namespace FacebookAutomation.Services.Facebook
         }
 
 
-        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null)
+        public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null, int limit = 0)
         {
             try
             {
@@ -128,7 +128,7 @@ namespace FacebookAutomation.Services.Facebook
                     { "variables", variables },
                     { "doc_id", docId.ToString() }
                 };
-                var content = new FormUrlEncodedContent(GetRequestFullFormData(extraFormData));
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
                 var response = await _httpClient.PostAsync(Url, content);
                 if (response.IsSuccessStatusCode)
                 {

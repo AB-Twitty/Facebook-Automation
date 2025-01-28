@@ -75,16 +75,15 @@ namespace FacebookAutomation.Models
                 }
             }
 
-            if (expandoObject?.data?.node?.timeline_list_feed_units?.edges?[0]?.cursor != null)
-            {
-                result.Pagination = new Pagination
-                {
-                    End_Cursor = expandoObject?.data?.node?.timeline_list_feed_units?.edges?[0]?.cursor,
-                    Has_Next_Page = true
-                };
+            var pagination = new Pagination { Has_Next_Page = false, End_Cursor = "" };
 
-                result.Pagination.Has_Next_Page = !string.IsNullOrEmpty(result.Pagination.End_Cursor);
+            if (result.Models.Count > 0)
+            {
+                pagination.End_Cursor = expandoObject?.data?.node?.timeline_list_feed_units?.edges?[0]?.cursor;
+                pagination.Has_Next_Page = true;
             }
+
+            result.Pagination = pagination;
 
             return result;
         }
