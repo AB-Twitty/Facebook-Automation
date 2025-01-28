@@ -13,8 +13,8 @@ namespace FacebookAutomation.Services.Facebook
     public class FacebookLoginAutomation
     {
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "bobofawzy3@gmail.com";
-        private const string Password = "123@abdoFawzy";
+        private const string Username = "#######@gmail.com";
+        private const string Password = "**************";
 
         public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(string country = "Egypt")
         {

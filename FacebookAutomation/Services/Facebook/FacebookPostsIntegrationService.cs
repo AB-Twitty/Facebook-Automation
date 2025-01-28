@@ -1,4 +1,5 @@
 ﻿using FacebookAutomation.Contracts.IFacebook;
+using FacebookAutomation.Exceptions;
 using FacebookAutomation.Models;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
@@ -13,16 +14,11 @@ namespace FacebookAutomation.Services.Facebook
 
         public FacebookPostsIntegrationService() : base()
         {
-            SetFeedbackAlgoArray(_httpClient);
-        }
-
-        private void SetFeedbackAlgoArray(HttpClient httpClient)
-        {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(httpClient, Url),
-                new PostCommentsFetchingAlgo(httpClient, Url),
-                new PostResharesFetchingAlgo(httpClient, Url)
+                new PostReactorsFetchingAlgo(_httpClient, Url),
+                new PostCommentsFetchingAlgo(_httpClient, Url),
+                new PostResharesFetchingAlgo(_httpClient, Url)
             ];
         }
 
@@ -60,6 +56,11 @@ namespace FacebookAutomation.Services.Facebook
                 }
 
                 throw new Exception("Request failed with status code: " + response.StatusCode);
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await SendSearchRequestAsync(search, nextPage);
             }
             catch (Exception ex)
             {
@@ -101,6 +102,11 @@ namespace FacebookAutomation.Services.Facebook
 
                 return feedbackUsersResponse;
             }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await GetFacebookUsersFor(model, nextPage);
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during GetFacebookUsersFor post: {ex.Message}");
@@ -130,6 +136,11 @@ namespace FacebookAutomation.Services.Facebook
                 }
 
                 throw new Exception($"Request failed with for post with id ({postInfo.PostId}) status code: " + response.StatusCode);
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await ReactOnPost(postInfo, reaction);
             }
             catch (Exception ex)
             {

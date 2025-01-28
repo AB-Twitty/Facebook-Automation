@@ -1,4 +1,5 @@
-﻿using FacebookAutomation.Models;
+﻿using FacebookAutomation.Exceptions;
+using FacebookAutomation.Models;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
@@ -43,6 +44,11 @@ namespace FacebookAutomation.Services.Facebook
                 }
 
                 throw new Exception("Request failed with status code: " + response.StatusCode);
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await SendSearchRequestAsync(search, nextPage);
             }
             catch (Exception ex)
             {
@@ -137,6 +143,11 @@ namespace FacebookAutomation.Services.Facebook
                 }
 
                 throw new Exception("Request failed with status code: " + response.StatusCode);
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await FetchPostFromPage(pageInfo, nextPage);
             }
             catch (Exception ex)
             {
