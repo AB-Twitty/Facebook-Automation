@@ -149,5 +149,40 @@ namespace FacebookAutomation.Services.Facebook
                 return await ReactOnPost(postInfo, reaction);
             }
         }
+
+        public async Task<bool> CommentOnPost(PostInfoModel postInfo, string comment)
+        {
+            try
+            {
+                var fbApiReqFriendlyName = "useCometUFICreateCommentMutation";
+                var variables = "{\"feedLocation\":\"DEDICATED_COMMENTING_SURFACE\",\"feedbackSource\":110,\"groupID\":null,\"input\":{\"client_mutation_id\":\"1\",\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"attachments\":null,\"feedback_id\":\"" + postInfo.FeedbackId + "\",\"formatting_style\":null,\"message\":{\"ranges\":[],\"text\":\"" + comment + "\"},\"attribution_id_v2\":\"CometHomeRoot.react,comet.home,unexpected,1738096059595,854487,4748854339,,\",\"vod_video_timestamp\":null,\"is_tracking_encrypted\":true,\"tracking\":[],\"feedback_source\":\"DEDICATED_COMMENTING_SURFACE\",\"idempotence_token\":\"client:" + Guid.NewGuid().ToString() + "\",\"session_id\":null},\"inviteShortLinkKey\":null,\"renderLocation\":null,\"scale\":1,\"useDefaultActor\":false,\"focusCommentID\":null,\"__relay_internal__pv__IsWorkUserrelayprovider\":false}";
+                var docId = 8273470932756421;
+                var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var response = await _httpClient.PostAsync(Url, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                throw new Exception($"Request failed with for post with id ({postInfo.PostId}) status code: " + response.StatusCode);
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await CommentOnPost(postInfo, comment);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during CommentOnPost: {ex.Message}");
+                await TryReLoginAsync();
+                return await CommentOnPost(postInfo, comment);
+            }
+        }
     }
 }

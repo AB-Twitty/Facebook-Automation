@@ -21,7 +21,17 @@ public class Program
         }, Reactions.LOVE);
         */
 
-        await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
+        var postService = new FacebookPostsIntegrationService();
+
+        await postService.CommentOnPost(new FacebookAutomation.Models.PostInfoModel
+        {
+            StoryId = "UzpfSUZTOjE6LTQ3NDMyMjcxNzE4NzAxNDAyNjplSndUNjVnMmVmR0VXYmQzZkdYVWxCRzcxM3pyMTVYZXVTeWlmR0x2cm41YXZXNi9ydGl6UlN0LzhvaHQycjcxSjQ4MG85c0tlVFZOR1pGM3pHb01wbUFKTXdZeGhqU28wdFZNYmxmRW1YNHhmVHU5c0FOa2lEU2p4NVFHSnFiRUlyaXgwZ3dNRE9JT3IvT2ZNREF3TUtnS1NUTzVTY0drN2drd21hMi90UGJBcTZZZjd5WXlwaktJc3VoSU16YnlaUmJIRjZlV3hHZm14YWVscHFZd1NqTmdod3c4WG1JTU1VSkNEQXhKcGd3TUFCbjZUUUk9",
+            FeedbackId = "ZmVlZGJhY2s6MTE3NDQ4ODA0NzM3ODcyNw==",
+            PostId = "1189906202505979"
+        }, "My Best Scene Ever");
+
+
+        //await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
 
         await FacebookLogoutAutomation.Logout();
     }
