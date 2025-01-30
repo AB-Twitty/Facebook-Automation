@@ -13,7 +13,9 @@ namespace FacebookAutomation.Utils
 
         private HttpClientSingleton()
         {
-            HttpClient = new HttpClient();
+            var handler = new HttpClientHandler();
+            var delayedHandler = new DelayedHandler(handler, 500);
+            HttpClient = new HttpClient(delayedHandler);
         }
 
         public void ConfigureHttpClient(IReadOnlyCollection<OpenQA.Selenium.Cookie> cookies, string url)
