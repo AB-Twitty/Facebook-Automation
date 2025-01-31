@@ -45,7 +45,7 @@ namespace FacebookAutomation.Services.Facebook
             {
                 Console.WriteLine($"Re-login failed: {ex.Message}. Retrying...");
 
-                await Task.Delay(30 * 1000); // delay for 30 seconds
+                await Task.Delay(1000); // delay for 30 seconds
                 await TryReLoginAsync();
             }
         }

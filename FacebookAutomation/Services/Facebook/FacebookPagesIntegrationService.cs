@@ -2,6 +2,9 @@
 using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System.Text.RegularExpressions;
 
 namespace FacebookAutomation.Services.Facebook
 {
@@ -10,6 +13,47 @@ namespace FacebookAutomation.Services.Facebook
         public FacebookPagesIntegrationService() : base()
         {
         }
+
+
+        public static PageInfoModel? GetPageInfoFromUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return null;
+
+            using (IWebDriver driver = new ChromeDriver())
+            {
+                try
+                {
+                    driver.Navigate().GoToUrl(url);
+
+                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
+                    string renderedHtml = driver.PageSource;
+
+                    // Regex to find the selectedID in the page HTML
+                    var regex = new Regex(@"""selectedID"":""(\d+)""");
+                    var match = regex.Match(renderedHtml);
+
+                    if (match.Success)
+                    {
+                        string pageId = match.Groups[1].Value;
+                        Console.WriteLine("Found Page ID: " + pageId);
+                        return new PageInfoModel { Id = pageId };
+                    }
+                    else
+                    {
+                        Console.WriteLine("ID not found in the page.");
+                        return null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occurred: " + ex.Message);
+                    return null;
+                }
+            }
+        }
+
 
         public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)
         {
@@ -95,7 +139,7 @@ namespace FacebookAutomation.Services.Facebook
             };
         }
 
-        private async Task<BaseResponse<PostInfoModel>> FetchPostFromPage(PageInfoModel pageInfo, Pagination? nextPage = null)
+        public async Task<BaseResponse<PostInfoModel>> FetchPostFromPage(PageInfoModel pageInfo, Pagination? nextPage = null)
         {
             try
             {
