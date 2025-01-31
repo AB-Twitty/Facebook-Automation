@@ -1,5 +1,4 @@
-﻿using FacebookAutomation.Models;
-using FacebookAutomation.Models.Facebook;
+﻿using FacebookAutomation.Models.Facebook;
 
 namespace FacebookAutomation.Contracts.IFacebook
 {

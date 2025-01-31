@@ -14,9 +14,4 @@
     <PackageReference Include="Selenium.WebDriver" Version="4.28.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Contracts\IMapping\" />
-    <Folder Include="Services\Mapping\" />
-  </ItemGroup>
-
 </Project>

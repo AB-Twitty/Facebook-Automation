@@ -1,6 +1,6 @@
 ﻿using FacebookAutomation.Contracts.IFacebook;
 using FacebookAutomation.Exceptions;
-using FacebookAutomation.Models;
+using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
@@ -58,7 +58,7 @@ namespace FacebookAutomation.Services.Facebook
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
                     var postMapper = new PostMapper();
-                    var postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
+                    var postInfoResults = postMapper.MapTo(jsonObj);
 
                     return new BaseResponse<BaseResponseModel>
                     {

@@ -1,19 +1,15 @@
-﻿namespace FacebookAutomation.Models.Facebook
-{
-    public class PostResharesModel
-    {
-        public Pagination Pagination { get; set; }
-        public IList<FacebookUser> Reshares_Users { get; set; }
-    }
+﻿using FacebookAutomation.Models.Facebook;
 
-    public class PostResharesMapper
+namespace FacebookAutomation.Mapping
+{
+    public class PostResharesMapper : FacebookResponseMapper<FacebookUser>
     {
-        public PostResharesModel MapToPostInfoResult(dynamic expandoObject)
+        protected override BaseResponse<FacebookUser> MapToModel(dynamic expandoObject)
         {
             // Initialize the result object
-            var result = new PostResharesModel
+            var result = new BaseResponse<FacebookUser>
             {
-                Reshares_Users = new List<FacebookUser>()
+                Models = new List<FacebookUser>()
             };
 
             // Map the results (edges) into PostModels
@@ -27,7 +23,7 @@
                         Name = edge.node?.comet_sections?.context_layout?.story?.comet_sections?.title?.story?.actors[0]?.name
                     };
 
-                    result.Reshares_Users.Add(user);
+                    result.Models.Add(user);
                 }
             }
 

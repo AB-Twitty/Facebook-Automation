@@ -1,17 +1,10 @@
 ﻿using FacebookAutomation.Models.Facebook;
 
-namespace FacebookAutomation.Models
+namespace FacebookAutomation.Mapping
 {
-    public class PostInfoModel : BaseResponseModel
+    public class PostMapper : FacebookResponseMapper<PostInfoModel>
     {
-        public string? StoryId { get; set; }
-        public string? PostId { get; set; }
-        public string? FeedbackId { get; set; }
-    }
-
-    public class PostMapper
-    {
-        public BaseResponse<PostInfoModel> MapToPostInfoResult(dynamic expandoObject)
+        protected override BaseResponse<PostInfoModel> MapToModel(dynamic expandoObject)
         {
             // Initialize the result object
             var result = new BaseResponse<PostInfoModel>
@@ -49,9 +42,10 @@ namespace FacebookAutomation.Models
     }
 
 
-    public class PostFromPageMapper
+
+    public class PostFromPageMapper : FacebookResponseMapper<PostInfoModel>
     {
-        public BaseResponse<PostInfoModel> MapToPostInfoResult(dynamic expandoObject)
+        protected override BaseResponse<PostInfoModel> MapToModel(dynamic expandoObject)
         {
             // Initialize the result object
             var result = new BaseResponse<PostInfoModel>
@@ -88,5 +82,4 @@ namespace FacebookAutomation.Models
             return result;
         }
     }
-
 }
