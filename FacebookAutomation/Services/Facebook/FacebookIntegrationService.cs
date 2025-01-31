@@ -4,9 +4,8 @@ using FacebookAutomation.Utils;
 
 namespace FacebookAutomation.Services.Facebook
 {
-    public abstract class FacebookIntegrationService<TModel> : IFacebookIntegrationService where TModel : BaseResponseModel
+    public abstract class FacebookIntegrationService<TModel> : HttpClientUpdater, IFacebookIntegrationService where TModel : BaseResponseModel
     {
-        protected readonly HttpClient _httpClient;
         protected readonly Dictionary<string, string> _basicFormData;
         protected const string Url = "https://www.facebook.com/api/graphql/";
 
@@ -22,18 +21,6 @@ namespace FacebookAutomation.Services.Facebook
             _basicFormData = FormDataState.Instance.GetAllFormData();
         }
 
-        protected Dictionary<string, string> GetRequestFullFormData(Dictionary<string, string> extraFormData)
-        {
-            var fullFormData = FormDataState.Instance.GetAllFormData();
-
-            foreach (var kvp in extraFormData)
-            {
-                fullFormData[kvp.Key] = kvp.Value;
-            }
-
-            return fullFormData;
-        }
-
         protected async Task TryReLoginAsync()
         {
             try
@@ -42,6 +29,14 @@ namespace FacebookAutomation.Services.Facebook
                 await FacebookLogoutAutomation.Logout();
                 var cookies = FacebookLoginAutomation.Login();
                 HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
+
+                if (HttpClientSingleton.Instance.IsProxyChanged)
+                {
+                    _httpClient.Dispose();
+                    UpdateHttpClient(HttpClientSingleton.Instance.HttpClient);
+                    HttpClientSingleton.Instance.IsProxyChanged = false;
+                }
+
                 //await SetDtsgTokenAsync();
 
                 Console.WriteLine("Re-login successful.");
@@ -50,7 +45,7 @@ namespace FacebookAutomation.Services.Facebook
             {
                 Console.WriteLine($"Re-login failed: {ex.Message}. Retrying...");
 
-                await Task.Delay(5000);
+                await Task.Delay(30 * 1000); // delay for 30 seconds
                 await TryReLoginAsync();
             }
         }

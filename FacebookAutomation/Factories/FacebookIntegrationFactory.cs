@@ -18,9 +18,9 @@ namespace FacebookAutomation.Factories
 
     public enum FacebookIntegrationServiceType
     {
-        Pages,
-        Posts,
 
+        Posts,
+        Pages,
         Groups
     }
 }

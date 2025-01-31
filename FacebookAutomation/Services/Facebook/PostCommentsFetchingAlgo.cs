@@ -5,9 +5,8 @@ using FacebookAutomation.Utils;
 
 namespace FacebookAutomation.Services.Facebook
 {
-    public class PostCommentsFetchingAlgo : IPostFeedbackService
+    public class PostCommentsFetchingAlgo : HttpClientUpdater, IPostFeedbackService
     {
-        private readonly HttpClient _httpClient;
         private readonly Dictionary<string, string> _basicFormData;
         private readonly string Url;
 
