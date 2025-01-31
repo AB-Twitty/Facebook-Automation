@@ -2,7 +2,6 @@
 using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
-using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
 
@@ -14,13 +13,24 @@ namespace FacebookAutomation.Services.Facebook
         {
         }
 
-
         public static PageInfoModel? GetPageInfoFromUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
                 return null;
 
-            using (IWebDriver driver = new ChromeDriver())
+            ChromeOptions options = new ChromeOptions();
+            options.AddArgument("--headless"); // Run in headless mode
+            options.AddArgument("--disable-gpu"); // Disable GPU
+            options.AddArgument("--no-sandbox"); // Bypass OS security model
+            options.AddArgument("--disable-dev-shm-usage"); // Overcome limited resource problems
+            options.AddArgument("--disable-extensions"); // Disable extensions
+            options.AddArgument("--blink-settings=imagesEnabled=false"); // Disable images
+            options.AddArgument("--disable-logging"); // Disable logging
+            options.AddArgument("--log-level=3"); // Suppress console logging
+            options.AddArgument("--silent"); // Suppress ChromeDriver logs
+            options.AddArgument("--enable-unsafe-swiftshader"); // Enable unsafe swiftshader
+
+            using (ChromeDriver driver = new ChromeDriver(options))
             {
                 try
                 {
@@ -53,7 +63,6 @@ namespace FacebookAutomation.Services.Facebook
                 }
             }
         }
-
 
         public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)
         {
