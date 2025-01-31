@@ -1,5 +1,5 @@
 ﻿using FacebookAutomation.Contracts.IFacebook;
-using FacebookAutomation.Models;
+using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
@@ -40,13 +40,9 @@ namespace FacebookAutomation.Services.Facebook
                 var jsonObj = await Helper.DeserializeResponseToDynamic(response);
 
                 var post_comments_mapper = new PostCommentsMapper();
-                var postCommentsResult = post_comments_mapper.MapToPostInfoResult(jsonObj);
+                var postCommentsResult = post_comments_mapper.MapTo(jsonObj);
 
-                return new BaseResponse<FacebookUser>
-                {
-                    Models = postCommentsResult.CommentsUsers.Cast<FacebookUser>().ToList(),
-                    Pagination = postCommentsResult.Pagination
-                };
+                return postCommentsResult;
             }
             else
             {

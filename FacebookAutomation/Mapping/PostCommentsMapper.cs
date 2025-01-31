@@ -1,19 +1,15 @@
-﻿namespace FacebookAutomation.Models.Facebook
-{
-    public class PostCommentsModel
-    {
-        public Pagination Pagination { get; set; }
-        public IList<FacebookUser> CommentsUsers { get; set; }
-    }
+﻿using FacebookAutomation.Models.Facebook;
 
-    public class PostCommentsMapper
+namespace FacebookAutomation.Mapping
+{
+    public class PostCommentsMapper : FacebookResponseMapper<FacebookUser>
     {
-        public PostCommentsModel MapToPostInfoResult(dynamic expandoObject)
+        protected override BaseResponse<FacebookUser> MapToModel(dynamic expandoObject)
         {
             // Initialize the result object
-            var result = new PostCommentsModel
+            var result = new BaseResponse<FacebookUser>
             {
-                CommentsUsers = new List<FacebookUser>()
+                Models = new List<FacebookUser>()
             };
 
             // Map the results (edges) into PostModels
@@ -27,7 +23,7 @@
                         Name = edge.node?.author?.name
                     };
 
-                    result.CommentsUsers.Add(user);
+                    result.Models.Add(user);
                 }
             }
 

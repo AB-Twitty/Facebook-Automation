@@ -1,5 +1,5 @@
 ﻿using FacebookAutomation.Contracts.IFacebook;
-using FacebookAutomation.Models;
+using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
@@ -40,13 +40,9 @@ namespace FacebookAutomation.Services.Facebook
                 var jsonObj = await Helper.DeserializeResponseToDynamic(response);
 
                 var post_reshares_mapper = new PostResharesMapper();
-                var postResharesResult = post_reshares_mapper.MapToPostInfoResult(jsonObj);
+                var postResharesResult = post_reshares_mapper.MapTo(jsonObj);
 
-                return new BaseResponse<FacebookUser>
-                {
-                    Models = postResharesResult.Reshares_Users.Cast<FacebookUser>().ToList(),
-                    Pagination = postResharesResult.Pagination
-                };
+                return postResharesResult;
             }
             else
             {

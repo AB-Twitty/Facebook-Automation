@@ -1,21 +1,15 @@
 ﻿using FacebookAutomation.Models.Facebook;
 
-namespace FacebookAutomation.Models
+namespace FacebookAutomation.Mapping
 {
-    public class PostReactionsResult
+    public class PostReactionsMapper : FacebookResponseMapper<FacebookUser>
     {
-        public Pagination Pagination { get; set; }
-        public IList<FacebookUser> Reactors { get; set; }
-    }
-
-    public class PostReactionsMapper
-    {
-        public PostReactionsResult MapToPostInfoResult(dynamic expandoObject)
+        protected override BaseResponse<FacebookUser> MapToModel(dynamic expandoObject)
         {
             // Initialize the result object
-            var result = new PostReactionsResult
+            var result = new BaseResponse<FacebookUser>
             {
-                Reactors = new List<FacebookUser>()
+                Models = new List<FacebookUser>()
             };
 
             // Map the results (edges) into PostModels
@@ -29,7 +23,7 @@ namespace FacebookAutomation.Models
                         Name = edge.node?.name
                     };
 
-                    result.Reactors.Add(user);
+                    result.Models.Add(user);
                 }
             }
 

@@ -1,5 +1,5 @@
 ﻿using FacebookAutomation.Exceptions;
-using FacebookAutomation.Models;
+using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
@@ -34,7 +34,7 @@ namespace FacebookAutomation.Services.Facebook
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
                     var pageMapper = new PageMapper();
-                    var pageInfoResults = pageMapper.MapToPageInfoResult(jsonObj);
+                    var pageInfoResults = pageMapper.MapTo(jsonObj);
 
                     return new BaseResponse<BaseResponseModel>
                     {
@@ -118,7 +118,7 @@ namespace FacebookAutomation.Services.Facebook
                 {
                     var jsonObj = await Helper.DeserializeResponseToDynamic(response);
                     var postMapper = new PostFromPageMapper();
-                    var postInfoResults = postMapper.MapToPostInfoResult(jsonObj);
+                    var postInfoResults = postMapper.MapTo(jsonObj);
 
                     return new BaseResponse<PostInfoModel>
                     {
