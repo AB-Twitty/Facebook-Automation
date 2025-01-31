@@ -2,7 +2,13 @@
 {
     public static class ProxyManager
     {
-        private static int currentProxyIndex = 0;
+        private static int currentProxyIndex;
+
+        static ProxyManager()
+        {
+            Random random = new Random();
+            currentProxyIndex = random.Next(ProxyList.Count);
+        }
 
         public static (string IP, int Port, string Username, string Password) GetNextProxy()
         {

@@ -16,12 +16,16 @@ namespace FacebookAutomation.Services.Facebook
         private static readonly ProxyService _proxyService = new ProxyService();
 
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "##########@##########.com";
-        private const string Password = "**************";
+        private const string Username = "#######@########.com";
+        private const string Password = "***************";
         private static int loginCount = 0;
         public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login()
         {
             IWebDriver driver = null;
+            IDevTools devTools = null;
+            DevToolsSession devToolsSession = null;
+            NetworkAdapter network = null;
+
             try
             {
                 // Set up Chrome options
@@ -43,13 +47,13 @@ namespace FacebookAutomation.Services.Facebook
                 driver = new ChromeDriver(options);
 
                 // Enable DevTools session
-                var devTools = driver as IDevTools;
-                var devToolsSession = devTools?.GetDevToolsSession();
+                devTools = driver as IDevTools;
+                devToolsSession = devTools?.GetDevToolsSession();
 
                 if (devToolsSession != null)
                 {
                     // Enable network monitoring
-                    var network = devToolsSession.GetVersionSpecificDomains<OpenQA.Selenium.DevTools.V132.DevToolsSessionDomains>().Network;
+                    network = devToolsSession.GetVersionSpecificDomains<OpenQA.Selenium.DevTools.V132.DevToolsSessionDomains>().Network;
                     network.Enable(new OpenQA.Selenium.DevTools.V132.Network.EnableCommandSettings());
 
                     // Subscribe to network events
@@ -95,6 +99,13 @@ namespace FacebookAutomation.Services.Facebook
             {
                 // Ensure the driver is properly disposed
                 driver?.Quit();
+
+                // Disable network monitoring and unsubscribe from network events
+                if (devToolsSession != null && network != null)
+                {
+                    network.RequestWillBeSent -= OnRequestWillBeSent;
+                    network.Disable();
+                }
             }
         }
 
