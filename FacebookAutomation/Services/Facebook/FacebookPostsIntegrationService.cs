@@ -22,6 +22,18 @@ namespace FacebookAutomation.Services.Facebook
             ];
         }
 
+        public override void UpdateHttpClient(HttpClient httpClient)
+        {
+            base.UpdateHttpClient(httpClient);
+            if (FeedbackAlgos != null)
+            {
+                foreach (var algo in FeedbackAlgos)
+                {
+                    algo.UpdateHttpClient(httpClient);
+                }
+            }
+        }
+
         public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)
         {
             try

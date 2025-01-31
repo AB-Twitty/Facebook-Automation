@@ -8,8 +8,9 @@ namespace FacebookAutomation.Utils
 
         public static HttpClientSingleton Instance => _instance.Value;
 
-        public HttpClient HttpClient { get; }
+        public HttpClient HttpClient { get; private set; }
         public bool IsConfigured { get; private set; } = false;
+        public bool IsProxyChanged { get; set; } = false;
 
         private HttpClientSingleton()
         {
@@ -36,6 +37,18 @@ namespace FacebookAutomation.Utils
             HttpClient.DefaultRequestHeaders.Add("Cookie", cookieContainer.GetCookieHeader(new Uri(url)));
 
             IsConfigured = true;
+        }
+
+        public void ConfigureProxy(WebProxy proxy)
+        {
+            var handler = new HttpClientHandler
+            {
+                Proxy = proxy,
+                UseProxy = true
+            };
+            var delayedHandler = new DelayedHandler(handler, 500);
+            HttpClient = new HttpClient(delayedHandler);
+            IsProxyChanged = true;
         }
 
         private Cookie ConvertToSystemNetCookie(OpenQA.Selenium.Cookie seleniumCookie)

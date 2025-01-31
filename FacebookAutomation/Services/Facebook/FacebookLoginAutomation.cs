@@ -1,4 +1,5 @@
-﻿using FacebookAutomation.Utils;
+﻿using FacebookAutomation.Services.Proxy;
+using FacebookAutomation.Utils;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
@@ -12,11 +13,13 @@ namespace FacebookAutomation.Services.Facebook
 {
     public class FacebookLoginAutomation
     {
-        private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "#######@gmail.com";
-        private const string Password = "**************";
+        private static readonly ProxyService _proxyService = new ProxyService();
 
-        public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(string country = "Egypt")
+        private const string FacebookLoginUrl = "https://www.facebook.com/login";
+        private const string Username = "##########@##########.com";
+        private const string Password = "**************";
+        private static int loginCount = 0;
+        public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login()
         {
             IWebDriver driver = null;
             try
@@ -24,6 +27,17 @@ namespace FacebookAutomation.Services.Facebook
                 // Set up Chrome options
                 ChromeOptions options = new ChromeOptions();
                 options.AddArguments("start-maximized", "--incognito");
+
+                // Use a custom user profile to persist extension settings
+                string userProfilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google\\Chrome\\User Data\\Profile 1");
+                options.AddArguments($"--user-data-dir={userProfilePath}");
+
+                // Get the next proxy for every two logins
+                if (loginCount % 2 == 0)
+                {
+                    _proxyService.SetUpProxy(options);
+                }
+                loginCount = (loginCount + 1) % 2;
 
                 // Initialize ChromeDriver with options
                 driver = new ChromeDriver(options);
@@ -47,8 +61,8 @@ namespace FacebookAutomation.Services.Facebook
                 // Open Facebook login page
                 driver.Navigate().GoToUrl(FacebookLoginUrl);
 
-                // Set geolocation (optional, if needed)
-                SetGeolocation(driver, country);
+                // Handle cookies prompt if it appears
+                HandleCookiesPrompt(driver, wait);
 
                 // Wait for the email field and simulate typing
                 var emailElement = wait.Until(d => d.FindElement(By.Id("email")));
@@ -84,6 +98,24 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
+        private static void HandleCookiesPrompt(IWebDriver driver, WebDriverWait wait)
+        {
+            try
+            {
+                // Wait for the cookies prompt to appear and decline it
+                var declineButton = wait.Until(d => d.FindElement(By.XPath("//div[@aria-label='Decline optional cookies']")));
+                if (declineButton != null)
+                {
+                    declineButton.Click();
+                    Thread.Sleep(100);
+                }
+            }
+            catch (WebDriverTimeoutException)
+            {
+                // Cookies prompt did not appear, continue with the login process
+            }
+        }
+
         // Simulates human-like typing by adding a random delay between each character
         private static void SimulateTyping(IWebDriver driver, IWebElement element, string text)
         {
@@ -113,49 +145,8 @@ namespace FacebookAutomation.Services.Facebook
             Thread.Sleep(new Random().Next(1, 3));  // Random delay after clicking
         }
 
-        private static void SetGeolocation(IWebDriver driver, string country)
-        {
-            string script = string.Empty;
 
-            // Define geolocation for Egypt (Cairo) and Lebanon (Beirut)
-            if (country == "Egypt")
-            {
-                // Cairo, Egypt
-                script = @"
-                                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                                        var position = { coords: { latitude: 30.0444, longitude: 31.2357 } };  // Cairo, Egypt
-                                        success(position);
-                                    };
-                                ";
-            }
-            else if (country == "Lebanon")
-            {
-                // Beirut, Lebanon
-                script = @"
-                                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                                        var position = { coords: { latitude: 33.8886, longitude: 35.4955 } };  // Beirut, Lebanon
-                                        success(position);
-                                    };
-                                ";
-            }
-            else if (country == "Russia")
-            {
-                // Moscow, Russia
-                script = @"
-                                    navigator.geolocation.getCurrentPosition = function(success, error) {
-                                        var position = { coords: { latitude: 55.7558, longitude: 37.6173 } };  // Moscow, Russia
-                                        success(position);
-                                    };
-                                ";
-            }
 
-            // Inject the JavaScript into the browser to spoof the geolocation
-            if (!string.IsNullOrEmpty(script))
-            {
-                ((IJavaScriptExecutor)driver).ExecuteScript(script);
-                Console.WriteLine($"Geolocation set to {country}.");
-            }
-        }
 
         private static readonly object lockObject = new object();
         private static bool isRequestProcessed = false;

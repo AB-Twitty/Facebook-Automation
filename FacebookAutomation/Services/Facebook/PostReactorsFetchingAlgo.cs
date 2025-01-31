@@ -5,9 +5,8 @@ using FacebookAutomation.Utils;
 
 namespace FacebookAutomation.Services.Facebook
 {
-    public class PostReactorsFetchingAlgo : IPostFeedbackService
+    public class PostReactorsFetchingAlgo : HttpClientUpdater, IPostFeedbackService
     {
-        private readonly HttpClient _httpClient;
         private readonly Dictionary<string, string> _baseFormDate;
         private readonly string Url;
 
