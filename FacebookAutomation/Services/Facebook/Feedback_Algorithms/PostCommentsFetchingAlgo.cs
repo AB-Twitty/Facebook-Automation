@@ -3,16 +3,16 @@ using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
-namespace FacebookAutomation.Services.Facebook
+namespace FacebookAutomation.Services.Facebook.Feedback_Algorithms
 {
-    public class PostCommentsFetchingAlgo : HttpClientUpdater, IPostFeedbackService
+    public class PostCommentsFetchingAlgo : IPostFeedbackService
     {
+        private static HttpClient _httpClient => HttpClientSingleton.Instance.HttpClient;
         private readonly Dictionary<string, string> _basicFormData;
         private readonly string Url;
 
-        public PostCommentsFetchingAlgo(HttpClient httpClient, string url, Dictionary<string, string> basicFormData)
+        public PostCommentsFetchingAlgo(string url, Dictionary<string, string> basicFormData)
         {
-            _httpClient = httpClient;
             Url = url;
             _basicFormData = basicFormData;
         }
