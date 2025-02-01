@@ -1,85 +1,87 @@
-﻿using FacebookAutomation.Utils;
+﻿using FacebookAutomation.Contracts.IProxy;
+using FacebookAutomation.Models.Proxy;
+using FacebookAutomation.Utils;
 using OpenQA.Selenium.Chrome;
 using System.Net;
 
 namespace FacebookAutomation.Services.Proxy
 {
-    public class ProxyService
+    public class ProxyService : IProxyService
     {
-        public void SetUpProxy(ChromeOptions options)
+        public void SetUpProxy(ChromeOptions options, ProxySettings proxySettings, out string extensionPath)
         {
-            var (ip, port, username, password) = ProxyManager.GetNextProxy();
-            string extensionPath = CreateProxyAuthExtension(ip, port, username, password);
+            //var (ip, port, username, password) = ProxyManager.GetNextProxy();
+            extensionPath = CreateProxyAuthExtension(proxySettings);
             options.AddExtension(extensionPath);
 
-            var proxy = new WebProxy($"http://{ip}:{port}")
+            var proxy = new WebProxy($"http://{proxySettings.IpAddress}:{proxySettings.Port}")
             {
-                Credentials = new NetworkCredential(username, password),
+                Credentials = new NetworkCredential(proxySettings.Username, proxySettings.Password),
                 BypassProxyOnLocal = true
             };
 
             HttpClientSingleton.Instance.ConfigureProxy(proxy);
         }
 
-        private string CreateProxyAuthExtension(string host, int port, string username, string password)
+        private string CreateProxyAuthExtension(ProxySettings proxySettings)
         {
             string extensionDir = Path.Combine(Path.GetTempPath(), "proxy_auth_extension");
             Directory.CreateDirectory(extensionDir);
 
             string manifestContent = @"
-            {
-                ""version"": ""1.0.0"",
-                ""manifest_version"": 2,
-                ""name"": ""Proxy Auth Extension"",
-                ""permissions"": [
-                    ""proxy"",
-                    ""tabs"",
-                    ""unlimitedStorage"",
-                    ""storage"",
-                    ""<all_urls>"",
-                    ""webRequest"",
-                    ""webRequestBlocking""
-                ],
-                ""background"": {
-                    ""scripts"": [""background.js""]
-                },
-                ""incognito"": ""split""
-            }";
+                {
+                    ""version"": ""1.0.0"",
+                    ""manifest_version"": 2,
+                    ""name"": ""Proxy Auth Extension"",
+                    ""permissions"": [
+                        ""proxy"",
+                        ""tabs"",
+                        ""unlimitedStorage"",
+                        ""storage"",
+                        ""<all_urls>"",
+                        ""webRequest"",
+                        ""webRequestBlocking""
+                    ],
+                    ""background"": {
+                        ""scripts"": [""background.js""]
+                    },
+                    ""incognito"": ""split""
+                }";
 
             string backgroundJsContent = $@"
-            var config = {{
-                mode: ""fixed_servers"",
-                rules: {{
-                    singleProxy: {{
-                        scheme: ""http"",
-                        host: ""{host}"",
-                        port: parseInt({port})
-                    }},
-                    bypassList: [""localhost""]
-                }}
-            }};
-
-            chrome.proxy.settings.set({{value: config, scope: ""regular""}}, function() {{}});
-
-            function callbackFn(details) {{
-                return {{
-                    authCredentials: {{
-                        username: ""{username}"",
-                        password: ""{password}""
+                var config = {{
+                    mode: ""fixed_servers"",
+                    rules: {{
+                        singleProxy: {{
+                            scheme: ""http"",
+                            host: ""{proxySettings.IpAddress}"",
+                            port: parseInt({proxySettings.Port})
+                        }},
+                        bypassList: [""localhost""]
                     }}
                 }};
-            }}
 
-            chrome.webRequest.onAuthRequired.addListener(
-                callbackFn,
-                {{urls: [""<all_urls>""]}},
-                ['blocking']
-            );";
+                chrome.proxy.settings.set({{value: config, scope: ""regular""}}, function() {{}});
+
+                function callbackFn(details) {{
+                    return {{
+                        authCredentials: {{
+                            username: ""{proxySettings.Username}"",
+                            password: ""{proxySettings.Password}""
+                        }}
+                    }};
+                }}
+
+                chrome.webRequest.onAuthRequired.addListener(
+                    callbackFn,
+                    {{urls: [""<all_urls>""]}},
+                    ['blocking']
+                );";
 
             File.WriteAllText(Path.Combine(extensionDir, "manifest.json"), manifestContent);
             File.WriteAllText(Path.Combine(extensionDir, "background.js"), backgroundJsContent);
 
-            string zipPath = Path.Combine(Path.GetTempPath(), "proxy_auth_extension.zip");
+            string zipPath = Path.Combine(Path.GetTempPath(), $"proxy_auth_extension_{Guid.NewGuid()}.zip");
             if (File.Exists(zipPath))
             {
                 File.Delete(zipPath);

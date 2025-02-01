@@ -1,6 +1,10 @@
-﻿using FacebookAutomation.Factories;
+﻿using FacebookAutomation.Contracts.IProxy;
+using FacebookAutomation.Factories;
+using FacebookAutomation.Models;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Services.Facebook;
+using FacebookAutomation.Services.Proxy;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 public class Program
@@ -9,6 +13,25 @@ public class Program
     public static async Task Main(string[] args)
     {
         var host = CreateHostBuilder(args).Build();
+        var serviceProvider = host.Services;
+
+        var facebookAuth = new FacebookAuthModel
+        {
+            Email = "#######@#######.com",
+            Password = "**************",
+            ProxySettings = new FacebookAutomation.Models.Proxy.ProxySettings
+            {
+                IpAddress = "***.***.***.***",
+                Port = "####",
+                Username = "###########",
+                Password = "********************"
+            }
+        };
+
+
+        var facebookLoginAutomation = serviceProvider.GetRequiredService<FacebookLoginAutomation>();
+        facebookLoginAutomation.Login(facebookAuth);
+
 
         /*
         var postService = new FacebookPostsIntegrationService();
@@ -34,9 +57,10 @@ public class Program
 
         //await FacebookDataFetcher.FetchData("games mix", "2000");
 
-        //await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
+        await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
 
-        await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.LIKE, "اكتر محل مضمون في مصر");
+
+        //await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.LIKE, "اكتر محل مضمون في مصر");
 
         await FacebookLogoutAutomation.Logout();
     }
@@ -71,7 +95,8 @@ public class Program
                 .ConfigureServices((hostContext, services) =>
                 {
                     // Register services
-
+                    services.AddScoped<IProxyService, ProxyService>();
+                    services.AddScoped<FacebookLoginAutomation>();
                 });
 
 
