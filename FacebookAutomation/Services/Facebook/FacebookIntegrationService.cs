@@ -27,8 +27,8 @@ namespace FacebookAutomation.Services.Facebook
             {
                 Console.WriteLine("Attempting to re-login...");
                 await FacebookLogoutAutomation.Logout();
-                var cookies = FacebookLoginAutomation.Login();
-                HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
+                //var cookies = FacebookLoginAutomation.Login();
+                //HttpClientSingleton.Instance.ConfigureHttpClient(cookies, Url);
 
                 if (HttpClientSingleton.Instance.IsProxyChanged)
                 {

@@ -1,4 +1,7 @@
-﻿using FacebookAutomation.Services.Proxy;
+﻿using FacebookAutomation.Contracts.IProxy;
+using FacebookAutomation.Models;
+using FacebookAutomation.Models.Cookies;
+using FacebookAutomation.Models.Proxy;
 using FacebookAutomation.Utils;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -13,81 +16,47 @@ namespace FacebookAutomation.Services.Facebook
 {
     public class FacebookLoginAutomation
     {
-        private static readonly ProxyService _proxyService = new ProxyService();
-
+        private readonly IProxyService _proxyService;
         private const string FacebookLoginUrl = "https://www.facebook.com/login";
-        private const string Username = "#######@########.com";
-        private const string Password = "***************";
-        private static int loginCount = 0;
-        public static ReadOnlyCollection<OpenQA.Selenium.Cookie> Login()
+
+        public FacebookLoginAutomation(IProxyService proxyService)
         {
-            IWebDriver driver = null;
-            IDevTools devTools = null;
-            DevToolsSession devToolsSession = null;
-            NetworkAdapter network = null;
+            _proxyService = proxyService;
+        }
+
+        public ReadOnlyCollection<OpenQA.Selenium.Cookie> Login(FacebookAuthModel facebookAuth)
+        {
+            string extensionPath = string.Empty;
+            IWebDriver? driver = null;
+            IDevTools? devTools = null;
+            DevToolsSession? devToolsSession = null;
+            NetworkAdapter? network = null;
 
             try
             {
-                // Set up Chrome options
-                ChromeOptions options = new ChromeOptions();
-                options.AddArguments("start-maximized", "--incognito");
-
-                // Use a custom user profile to persist extension settings
-                string userProfilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google\\Chrome\\User Data\\Profile 1");
-                options.AddArguments($"--user-data-dir={userProfilePath}");
-
-                // Get the next proxy for every two logins
-                if (loginCount % 2 == 0)
-                {
-                    _proxyService.SetUpProxy(options);
-                }
-                loginCount = (loginCount + 1) % 2;
-
-                // Initialize ChromeDriver with options
+                var options = ConfigureChromeOptions(facebookAuth.ProxySettings, out extensionPath);
                 driver = new ChromeDriver(options);
 
-                // Enable DevTools session
                 devTools = driver as IDevTools;
                 devToolsSession = devTools?.GetDevToolsSession();
+                network = EnableNetworkMonitoring(devToolsSession);
 
-                if (devToolsSession != null)
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                driver.Navigate().GoToUrl("https://www.facebook.com/");
+                if (LoadCookies(driver, facebookAuth.CookiesJson))
                 {
-                    // Enable network monitoring
-                    network = devToolsSession.GetVersionSpecificDomains<OpenQA.Selenium.DevTools.V132.DevToolsSessionDomains>().Network;
-                    network.Enable(new OpenQA.Selenium.DevTools.V132.Network.EnableCommandSettings());
-
-                    // Subscribe to network events
-                    network.RequestWillBeSent += OnRequestWillBeSent;
+                    driver.Navigate().GoToUrl("https://www.facebook.com/");
+                    if (driver.Url.Contains("https://www.facebook.com/"))
+                    {
+                        return driver.Manage().Cookies.AllCookies;
+                    }
                 }
 
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                PerformLogin(driver, wait, facebookAuth);
 
-                // Open Facebook login page
-                driver.Navigate().GoToUrl(FacebookLoginUrl);
-
-                // Handle cookies prompt if it appears
-                HandleCookiesPrompt(driver, wait);
-
-                // Wait for the email field and simulate typing
-                var emailElement = wait.Until(d => d.FindElement(By.Id("email")));
-                SimulateTyping(driver, emailElement, Username);
-                Thread.Sleep(100);
-
-                // Wait for the password field and simulate typing
-                var passwordElement = wait.Until(d => d.FindElement(By.Id("pass")));
-                SimulateTyping(driver, passwordElement, Password);
-                Thread.Sleep(100);
-
-                // Wait for the login button and click it
-                var loginButton = wait.Until(d => d.FindElement(By.Name("login")));
-                SimulateClick(driver, loginButton);
-
-                // Wait for the login process to complete
-                wait.Until(d => d.Url.Contains("https://www.facebook.com/"));
-                Thread.Sleep(200);
-
-                // After login, capture the cookies
                 var cookies = driver.Manage().Cookies.AllCookies;
+                SaveCookies(driver);
                 return cookies;
             }
             catch (Exception ex)
@@ -97,29 +66,123 @@ namespace FacebookAutomation.Services.Facebook
             }
             finally
             {
-                // Ensure the driver is properly disposed
                 driver?.Quit();
+                DisableNetworkMonitoring(devToolsSession, network);
 
-                // Disable network monitoring and unsubscribe from network events
-                if (devToolsSession != null && network != null)
+                if (!string.IsNullOrEmpty(extensionPath) && File.Exists(extensionPath))
                 {
-                    network.RequestWillBeSent -= OnRequestWillBeSent;
-                    network.Disable();
+                    File.Delete(extensionPath);
                 }
             }
         }
 
-        private static void HandleCookiesPrompt(IWebDriver driver, WebDriverWait wait)
+        private ChromeOptions ConfigureChromeOptions(ProxySettings proxySettings, out string extensionPath)
+        {
+            var options = new ChromeOptions();
+            options.AddArguments("start-maximized", "--incognito");
+
+            string userProfilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google\\Chrome\\User Data\\Profile 1");
+            options.AddArguments($"--user-data-dir={userProfilePath}");
+
+            _proxyService.SetUpProxy(options, proxySettings, out extensionPath);
+
+            return options;
+        }
+
+        private NetworkAdapter? EnableNetworkMonitoring(DevToolsSession? devToolsSession)
+        {
+            if (devToolsSession == null) return null;
+
+            var network = devToolsSession.GetVersionSpecificDomains<OpenQA.Selenium.DevTools.V132.DevToolsSessionDomains>().Network;
+            network.Enable(new OpenQA.Selenium.DevTools.V132.Network.EnableCommandSettings());
+            network.RequestWillBeSent += OnRequestWillBeSent;
+
+            return network;
+        }
+
+        private void DisableNetworkMonitoring(DevToolsSession? devToolsSession, NetworkAdapter? network)
+        {
+            if (devToolsSession != null && network != null)
+            {
+                network.RequestWillBeSent -= OnRequestWillBeSent;
+                network.Disable();
+            }
+        }
+
+        private void PerformLogin(IWebDriver driver, WebDriverWait wait, FacebookAuthModel facebookAuth)
+        {
+            driver.Navigate().GoToUrl(FacebookLoginUrl);
+            HandleCookiesPrompt(driver, wait);
+
+            var emailElement = wait.Until(d => d.FindElement(By.Id("email")));
+            SimulateTyping(driver, emailElement, facebookAuth.Email);
+            Thread.Sleep(100);
+
+            var passwordElement = wait.Until(d => d.FindElement(By.Id("pass")));
+            SimulateTyping(driver, passwordElement, facebookAuth.Password);
+            Thread.Sleep(100);
+
+            var loginButton = wait.Until(d => d.FindElement(By.Name("login")));
+            SimulateClick(driver, loginButton);
+
+            wait.Until(d => d.Url.Contains("https://www.facebook.com/"));
+            Thread.Sleep(200);
+        }
+
+        private bool LoadCookies(IWebDriver driver, string cookies)
         {
             try
             {
-                // Wait for the cookies prompt to appear and decline it
-                var declineButton = wait.Until(d => d.FindElement(By.XPath("//div[@aria-label='Decline optional cookies']")));
-                if (declineButton != null)
+                var cookiesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FacebookCookies.json");
+                if (File.Exists(cookiesPath))
                 {
-                    declineButton.Click();
-                    Thread.Sleep(100);
+                    var cookiesJson = File.ReadAllText(cookiesPath);
+                    var customCookies = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CustomCookie>>(cookiesJson)
+                        ?? new List<CustomCookie>();
+
+                    foreach (var customCookie in customCookies)
+                    {
+                        if (customCookie.Domain.Contains("facebook.com"))
+                        {
+                            driver.Manage().Cookies.AddCookie(customCookie.ToSeleniumCookie());
+                        }
+                    }
+                    return true;
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error loading cookies: " + ex.Message);
+            }
+            return false;
+        }
+
+        private void SaveCookies(IWebDriver driver)
+        {
+            try
+            {
+                var cookies = driver.Manage().Cookies.AllCookies;
+                var customCookies = cookies.Select(c => new CustomCookie(c)).ToList();
+                var cookiesJson = Newtonsoft.Json.JsonConvert.SerializeObject(customCookies);
+
+                // save the cookies to the salesman api
+
+                var cookiesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FacebookCookies.json");
+                File.WriteAllText(cookiesPath, cookiesJson);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error saving cookies: " + ex.Message);
+            }
+        }
+
+        private void HandleCookiesPrompt(IWebDriver driver, WebDriverWait wait)
+        {
+            try
+            {
+                var declineButton = wait.Until(d => d.FindElement(By.XPath("//div[@aria-label='Decline optional cookies']")));
+                declineButton?.Click();
+                Thread.Sleep(100);
             }
             catch (WebDriverTimeoutException)
             {
@@ -127,74 +190,49 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
-        // Simulates human-like typing by adding a random delay between each character
-        private static void SimulateTyping(IWebDriver driver, IWebElement element, string text)
+        private void SimulateTyping(IWebDriver driver, IWebElement element, string text)
         {
             var actions = new Actions(driver);
-
             foreach (char c in text)
             {
                 element.SendKeys(c.ToString());
-                Thread.Sleep(new Random().Next(1, 3)); // Random delay between keystrokes (simulate human typing speed)
+                Thread.Sleep(new Random().Next(1, 3));
 
-                // Move the cursor slightly within the element's bounds
-                int offsetX = new Random().Next(-2, 2);  // Smaller, more controlled offset
-                int offsetY = new Random().Next(-2, 2);  // Smaller, more controlled offset
-
-                // Move the cursor within the element itself
-                actions.MoveToElement(element, offsetX, offsetY);
-                actions.Perform();
+                int offsetX = new Random().Next(-2, 2);
+                int offsetY = new Random().Next(-2, 2);
+                actions.MoveToElement(element, offsetX, offsetY).Perform();
             }
         }
 
-        // Simulates clicking on an element with a slight delay
-        private static void SimulateClick(IWebDriver driver, IWebElement element)
+        private void SimulateClick(IWebDriver driver, IWebElement element)
         {
             var actions = new Actions(driver);
-            actions.MoveToElement(element);
-            actions.Click().Build().Perform();
-            Thread.Sleep(new Random().Next(1, 3));  // Random delay after clicking
+            actions.MoveToElement(element).Click().Perform();
+            Thread.Sleep(new Random().Next(1, 3));
         }
-
-
-
 
         private static readonly object lockObject = new object();
         private static bool isRequestProcessed = false;
 
-        // Callback function to capture network requests
-        private static void OnRequestWillBeSent(object sender, RequestWillBeSentEventArgs e)
+        private void OnRequestWillBeSent(object sender, RequestWillBeSentEventArgs e)
         {
-            // Look for GraphQL requests (these will typically have the word "graphql" in the URL)
             if (e.Request.Url.Contains("graphql"))
             {
                 lock (lockObject)
                 {
-                    if (isRequestProcessed)
-                    {
-                        return;
-                    }
+                    if (isRequestProcessed) return;
 
-                    // Optionally, inspect the payload of the GraphQL request here (e.g., POST data)
                     var postData = e.Request.PostData;
-
                     if (postData != null)
                     {
-                        // Decode the form data
                         var decodedData = HttpUtility.UrlDecode(postData);
-
-                        // Split the form data into key-value pairs
                         var formDataPairs = decodedData.Split('&');
-
-                        // Add each key-value pair to the FormDataState
                         foreach (var pair in formDataPairs)
                         {
                             var keyValue = pair.Split('=');
                             if (keyValue.Length == 2)
                             {
-                                var key = keyValue[0];
-                                var value = keyValue[1];
-                                FormDataState.Instance.SetFormData(key, value);
+                                FormDataState.Instance.SetFormData(keyValue[0], keyValue[1]);
                             }
                         }
                     }
