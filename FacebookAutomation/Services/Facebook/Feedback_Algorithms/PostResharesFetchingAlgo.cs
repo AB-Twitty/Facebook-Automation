@@ -3,16 +3,16 @@ using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;
 
-namespace FacebookAutomation.Services.Facebook
+namespace FacebookAutomation.Services.Facebook.Feedback_Algorithms
 {
-    public class PostResharesFetchingAlgo : HttpClientUpdater, IPostFeedbackService
+    public class PostResharesFetchingAlgo : IPostFeedbackService
     {
+        private static HttpClient _httpClient => HttpClientSingleton.Instance.HttpClient;
         private readonly Dictionary<string, string> _baseFormData;
         private readonly string Url;
 
-        public PostResharesFetchingAlgo(HttpClient httpClient, string url, Dictionary<string, string> baseFormData)
+        public PostResharesFetchingAlgo(string url, Dictionary<string, string> baseFormData)
         {
-            _httpClient = httpClient;
             Url = url;
             _baseFormData = baseFormData;
         }

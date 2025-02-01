@@ -4,6 +4,7 @@ using FacebookAutomation.Models;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Services.Facebook;
 using FacebookAutomation.Services.Proxy;
+using FacebookAutomation.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -28,10 +29,12 @@ public class Program
             }
         };
 
+        const string URL = "https://www.facebook.com/api/graphql/";
 
         var facebookLoginAutomation = serviceProvider.GetRequiredService<FacebookLoginAutomation>();
-        facebookLoginAutomation.Login(facebookAuth);
+        var cookies = facebookLoginAutomation.Login(facebookAuth);
 
+        HttpClientSingleton.Instance.ConfigureHttpClient(cookies, URL);
 
         /*
         var postService = new FacebookPostsIntegrationService();
@@ -97,6 +100,8 @@ public class Program
                     // Register services
                     services.AddScoped<IProxyService, ProxyService>();
                     services.AddScoped<FacebookLoginAutomation>();
+
+                    services.AddSingleton<HttpClientSingleton>();
                 });
 
 

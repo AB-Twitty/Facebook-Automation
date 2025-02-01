@@ -2,6 +2,7 @@
 using FacebookAutomation.Exceptions;
 using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
+using FacebookAutomation.Services.Facebook.Feedback_Algorithms;
 using FacebookAutomation.Utils;
 
 namespace FacebookAutomation.Services.Facebook
@@ -16,22 +17,10 @@ namespace FacebookAutomation.Services.Facebook
         {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(_httpClient, Url, _basicFormData),
-                new PostCommentsFetchingAlgo(_httpClient, Url, _basicFormData),
-                new PostResharesFetchingAlgo(_httpClient, Url, _basicFormData)
+                new PostReactorsFetchingAlgo(Url, _basicFormData),
+                new PostCommentsFetchingAlgo(Url, _basicFormData),
+                new PostResharesFetchingAlgo(Url, _basicFormData)
             ];
-        }
-
-        public override void UpdateHttpClient(HttpClient httpClient)
-        {
-            base.UpdateHttpClient(httpClient);
-            if (FeedbackAlgos != null)
-            {
-                foreach (var algo in FeedbackAlgos)
-                {
-                    algo.UpdateHttpClient(httpClient);
-                }
-            }
         }
 
         public override async Task<BaseResponse<BaseResponseModel>> SendSearchRequestAsync(string search, Pagination? nextPage = null)

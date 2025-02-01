@@ -10,7 +10,6 @@ namespace FacebookAutomation.Utils
 
         public HttpClient HttpClient { get; private set; }
         public bool IsConfigured { get; private set; } = false;
-        public bool IsProxyChanged { get; set; } = false;
 
         private HttpClientSingleton()
         {
@@ -48,7 +47,6 @@ namespace FacebookAutomation.Utils
             };
             var delayedHandler = new DelayedHandler(handler, 500);
             HttpClient = new HttpClient(delayedHandler);
-            IsProxyChanged = true;
         }
 
         private Cookie ConvertToSystemNetCookie(OpenQA.Selenium.Cookie seleniumCookie)
