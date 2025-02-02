@@ -42,7 +42,9 @@ public class Program
         var userActionsService = serviceProvider.GetRequiredService<IFacebookUserActionsService>();
 
         //await userActionsService.SendBulkFriendRequests(new List<string> { "100003122350573", "100006208265338" });
-        await userActionsService.PokeUser("100003122350573");
+        //await userActionsService.PokeUser("100003122350573");
+        //await userActionsService.FollowUser("100003122350573");
+
         /*
         var commentService = serviceProvider.GetRequiredService<ICommentsService>();
 
