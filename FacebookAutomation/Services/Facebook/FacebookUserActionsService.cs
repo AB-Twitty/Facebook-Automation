@@ -20,9 +20,44 @@ namespace FacebookAutomation.Services.Facebook
             throw new NotImplementedException();
         }
 
-        public Task<bool> PokeUser(string userId)
+        public async Task<bool> PokeUser(string userId)
         {
-            throw new NotImplementedException();
+            // Form data as URL-encoded
+            var fbApiReqFriendlyName = "PokesMutatorPokeMutation";
+            var variables = "{\"input\":{\"client_mutation_id\":\"1\",\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"user_id\":\"" + userId + "\"}}";
+
+            var docId = 5028133957233114;
+            var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+
+            var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+            var response = await HttpClient.PostAsync(Url, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonObj = await Helper.DeserializeResponseToDynamic(response);
+                var poke_status = jsonObj?["data"]?["user_poke"]?["user"]?["poke_status"]?.ToString();
+
+                if (poke_status == "PENDING")
+                {
+                    Console.WriteLine($"Successfully poked user \"{userId}\"");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to poke user \"{userId}\" with status: {poke_status}");
+                    return false;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Failed to poke user \"{userId}\" with status code: {response.StatusCode}");
+                return false;
+            }
         }
 
         public async Task SendBulkFriendRequests(List<string> userIds)
