@@ -1,4 +1,4 @@
-﻿using FacebookAutomation.Contracts.IFacebook;
+﻿using FacebookAutomation.Contracts.IFacebook.IFeedback_Services;
 using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Utils;

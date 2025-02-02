@@ -1,4 +1,4 @@
-﻿using FacebookAutomation.Contracts.IFacebook;
+﻿using FacebookAutomation.Contracts.IFacebook.IFeedback_Services;
 using FacebookAutomation.Exceptions;
 using FacebookAutomation.Mapping;
 using FacebookAutomation.Models.Facebook;
@@ -18,7 +18,7 @@ namespace FacebookAutomation.Services.Facebook
             FeedbackAlgos =
             [
                 new PostReactorsFetchingAlgo(Url, _basicFormData),
-                new PostCommentsFetchingAlgo(Url, _basicFormData),
+                new CommentsService(Url, _basicFormData),
                 new PostResharesFetchingAlgo(Url, _basicFormData)
             ];
         }

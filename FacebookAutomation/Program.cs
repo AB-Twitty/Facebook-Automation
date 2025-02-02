@@ -1,8 +1,10 @@
-﻿using FacebookAutomation.Contracts.IProxy;
+﻿using FacebookAutomation.Contracts.IFacebook.IFeedback_Services;
+using FacebookAutomation.Contracts.IProxy;
 using FacebookAutomation.Factories;
 using FacebookAutomation.Models;
 using FacebookAutomation.Models.Facebook;
 using FacebookAutomation.Services.Facebook;
+using FacebookAutomation.Services.Facebook.Feedback_Algorithms;
 using FacebookAutomation.Services.Proxy;
 using FacebookAutomation.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,15 @@ public class Program
 
         HttpClientSingleton.Instance.ConfigureHttpClient(cookies, URL);
 
+        var commentService = serviceProvider.GetRequiredService<ICommentsService>();
+
+        var response = await commentService.GetCommentsForPost(new PostInfoModel
+        {
+            FeedbackId = "ZmVlZGJhY2s6MTAxNzA4NjczNzExNjU3NQ==",
+            PostId = "",
+            StoryId = ""
+        });
+
         /*
         var postService = new FacebookPostsIntegrationService();
 
@@ -64,8 +75,6 @@ public class Program
 
 
         //await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.LIKE, "اكتر محل مضمون في مصر");
-
-        await FacebookLogoutAutomation.Logout();
     }
 
     /*
@@ -102,6 +111,8 @@ public class Program
                     services.AddScoped<FacebookLoginAutomation>();
 
                     services.AddSingleton<HttpClientSingleton>();
+
+                    services.AddScoped<ICommentsService>(x => new CommentsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
                 });
 
 
