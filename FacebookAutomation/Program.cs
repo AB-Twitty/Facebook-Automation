@@ -47,6 +47,12 @@ public class Program
             StoryId = ""
         });
 
+
+        var reactService = serviceProvider.GetRequiredService<IReactionsService>();
+
+        await reactService.ReactTo(response.Models[0].FeedbackId, ReactionsEnum.LOVE);
+        await commentService.CommentOn(response.Models[0].FeedbackId, "They only care about profit 😉", true);
+
         /*
         var postService = new FacebookPostsIntegrationService();
 
@@ -71,10 +77,9 @@ public class Program
 
         //await FacebookDataFetcher.FetchData("games mix", "2000");
 
-        await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
+        //await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
 
-
-        //await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.LIKE, "اكتر محل مضمون في مصر");
+        await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.CARE, "اكتر محل مضمون في مصر");
     }
 
     /*
@@ -113,6 +118,7 @@ public class Program
                     services.AddSingleton<HttpClientSingleton>();
 
                     services.AddScoped<ICommentsService>(x => new CommentsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
+                    services.AddScoped<IReactionsService>(x => new ReactionsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
                 });
 
 
@@ -275,7 +281,9 @@ public class Program
             Pagination? nextPage = null;
 
             var facebookPageIntegrationService = new FacebookPagesIntegrationService();
-            var facebookPostIntegrationService = new FacebookPostsIntegrationService();
+
+            var reactionsService = new ReactionsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData());
+            var commentsService = new CommentsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData());
 
             do
             {
@@ -287,14 +295,14 @@ public class Program
 
                 foreach (var post in postsResponse.Models)
                 {
-                    if (!string.IsNullOrWhiteSpace(reaction))
+                    if (reactionType.HasValue)
                     {
-                        await facebookPostIntegrationService.ReactOnPost(post, reaction);
+                        await reactionsService.ReactTo(post.FeedbackId, reactionType.Value);
                     }
 
                     if (!string.IsNullOrEmpty(comment))
                     {
-                        await facebookPostIntegrationService.CommentOnPost(post, comment);
+                        await commentsService.CommentOn(post.FeedbackId, comment);
                     }
 
                     Console.WriteLine($"Add feedback for post with id : {post.PostId}");

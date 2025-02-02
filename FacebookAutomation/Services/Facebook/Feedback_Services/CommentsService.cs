@@ -80,14 +80,29 @@ namespace FacebookAutomation.Services.Facebook.Feedback_Algorithms
             return new BaseResponse<CommentModel>();
         }
 
-        public Task ReactToComment(CommentModel comment, ReactionsEnum reaction)
+        public async Task<bool> CommentOn(string feedbackId, string commentText, bool isCommentReply = false)
         {
-            throw new NotImplementedException();
-        }
+            var fbApiReqFriendlyName = "useCometUFICreateCommentMutation";
+            var variables = "{\"feedLocation\":\"DEDICATED_COMMENTING_SURFACE\",\"feedbackSource\":110,\"groupID\":null,\"input\":{\"client_mutation_id\":\"1\",\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"attachments\":null,\"feedback_id\":\"" + feedbackId + "\",\"formatting_style\":null,\"message\":{\"ranges\":[],\"text\":\"" + commentText + "\"},\"attribution_id_v2\":\"CometHomeRoot.react,comet.home,unexpected,1738096059595,854487,4748854339,,\",\"vod_video_timestamp\":null,\"is_tracking_encrypted\":true,\"tracking\":[],\"feedback_source\":\"DEDICATED_COMMENTING_SURFACE\",\"idempotence_token\":\"client:" + Guid.NewGuid().ToString() + "\",\"session_id\":null},\"inviteShortLinkKey\":null,\"renderLocation\":null,\"scale\":1,\"useDefaultActor\":false,\"focusCommentID\":null,\"__relay_internal__pv__IsWorkUserrelayprovider\":false}";
+            var docId = isCommentReply ? 8980931231954739 : 8273470932756421;
 
-        public Task CommentOnComment(CommentModel comment, string commentText)
-        {
-            throw new NotImplementedException();
+            var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+            var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+            var response = await _httpClient.PostAsync(Url, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Successfully commented on feedback: \"{feedbackId}\"");
+                return true;
+            }
+
+            Console.WriteLine($"Failed to comment on feedback: \"{feedbackId}\" with status code: {response.StatusCode}");
+            return false;
         }
     }
 }
