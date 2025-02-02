@@ -17,7 +17,7 @@ namespace FacebookAutomation.Services.Facebook
         {
             FeedbackAlgos =
             [
-                new PostReactorsFetchingAlgo(Url, _basicFormData),
+                new ReactionsService(Url, _basicFormData),
                 new CommentsService(Url, _basicFormData),
                 new PostResharesFetchingAlgo(Url, _basicFormData)
             ];
@@ -71,7 +71,6 @@ namespace FacebookAutomation.Services.Facebook
             }
         }
 
-
         public override async Task<BaseResponse<FacebookUser>> GetFacebookUsersFor(BaseResponseModel model, Pagination? nextPage = null, int limit = 0)
         {
             try
@@ -113,76 +112,6 @@ namespace FacebookAutomation.Services.Facebook
                 Console.WriteLine($"Error during GetFacebookUsersFor post: {ex.Message}");
                 await TryReLoginAsync();
                 return await GetFacebookUsersFor(model, nextPage);
-            }
-        }
-
-        public async Task<bool> ReactOnPost(PostInfoModel postInfo, string reaction)
-        {
-            try
-            {
-                var fbApiReqFriendlyName = "CometUFIFeedbackReactMutation";
-                var variables = "{\"input\":{\"attribution_id_v2\":null,\"feedback_id\":\"" + postInfo.FeedbackId + "\",\"feedback_reaction_id\":\"" + reaction + "\",\"feedback_source\":\"NEWS_FEED\",\"feedback_referrer\":\"/privacy/consent/\",\"is_tracking_encrypted\":true,\"tracking\":null,\"session_id\":null,\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"client_mutation_id\":\"3\"},\"useDefaultActor\":false,\"__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider\":false}";
-                var docId = 8995964513767096;
-                var extraFormData = new Dictionary<string, string>
-                {
-                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
-                    { "variables", variables },
-                    { "doc_id", docId.ToString() }
-                };
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
-                var response = await _httpClient.PostAsync(Url, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-
-                throw new Exception($"Request failed with for post with id ({postInfo.PostId}) status code: " + response.StatusCode);
-            }
-            catch (NewDtsgTokenException _)
-            {
-                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
-                return await ReactOnPost(postInfo, reaction);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during ReactOnPost: {ex.Message}");
-                await TryReLoginAsync();
-                return await ReactOnPost(postInfo, reaction);
-            }
-        }
-
-        public async Task<bool> CommentOnPost(PostInfoModel postInfo, string comment)
-        {
-            try
-            {
-                var fbApiReqFriendlyName = "useCometUFICreateCommentMutation";
-                var variables = "{\"feedLocation\":\"DEDICATED_COMMENTING_SURFACE\",\"feedbackSource\":110,\"groupID\":null,\"input\":{\"client_mutation_id\":\"1\",\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"attachments\":null,\"feedback_id\":\"" + postInfo.FeedbackId + "\",\"formatting_style\":null,\"message\":{\"ranges\":[],\"text\":\"" + comment + "\"},\"attribution_id_v2\":\"CometHomeRoot.react,comet.home,unexpected,1738096059595,854487,4748854339,,\",\"vod_video_timestamp\":null,\"is_tracking_encrypted\":true,\"tracking\":[],\"feedback_source\":\"DEDICATED_COMMENTING_SURFACE\",\"idempotence_token\":\"client:" + Guid.NewGuid().ToString() + "\",\"session_id\":null},\"inviteShortLinkKey\":null,\"renderLocation\":null,\"scale\":1,\"useDefaultActor\":false,\"focusCommentID\":null,\"__relay_internal__pv__IsWorkUserrelayprovider\":false}";
-                var docId = 8273470932756421;
-                var extraFormData = new Dictionary<string, string>
-                {
-                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
-                    { "variables", variables },
-                    { "doc_id", docId.ToString() }
-                };
-                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
-                var response = await _httpClient.PostAsync(Url, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-
-                throw new Exception($"Request failed with for post with id ({postInfo.PostId}) status code: " + response.StatusCode);
-            }
-            catch (NewDtsgTokenException _)
-            {
-                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
-                return await CommentOnPost(postInfo, comment);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during CommentOnPost: {ex.Message}");
-                await TryReLoginAsync();
-                return await CommentOnPost(postInfo, comment);
             }
         }
     }
