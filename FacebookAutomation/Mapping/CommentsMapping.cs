@@ -20,7 +20,8 @@ namespace FacebookAutomation.Mapping
                     var user = new FacebookUser
                     {
                         Id = edge.node?.author?.id,
-                        Name = edge.node?.author?.name
+                        Name = edge.node?.author?.name,
+                        FollowStatus = edge.node?.author?.subscribe_status
                     };
 
                     result.Models.Add(user);

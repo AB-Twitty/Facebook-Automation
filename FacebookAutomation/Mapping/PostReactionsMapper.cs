@@ -20,7 +20,9 @@ namespace FacebookAutomation.Mapping
                     var user = new FacebookUser
                     {
                         Id = edge.node?.id,
-                        Name = edge.node?.name
+                        Name = edge.node?.name,
+                        FriendshipStatus = edge.node?.friendship_status,
+                        FollowStatus = edge.node?.subscribe_status
                     };
 
                     result.Models.Add(user);

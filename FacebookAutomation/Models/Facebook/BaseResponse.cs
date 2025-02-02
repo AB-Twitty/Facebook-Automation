@@ -25,6 +25,27 @@ namespace FacebookAutomation.Models.Facebook
     {
         public string? Id { get; set; }
         public string? Name { get; set; }
+        public string? FriendshipStatus { get; set; }
+        public bool CanSendFriendRequest
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(FriendshipStatus))
+                    return false;
+
+                return FriendshipStatus == "CAN_REQUEST";
+            }
+        }
+        public string? FollowStatus { get; set; }
+        public bool CanFollow
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(FollowStatus))
+                    return false;
+                return FollowStatus == "CAN_SUBSCRIBE";
+            }
+        }
     }
 
     public enum FeedbackType
