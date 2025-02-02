@@ -1,4 +1,5 @@
-﻿using FacebookAutomation.Contracts.IFacebook.IFeedback_Services;
+﻿using FacebookAutomation.Contracts.IFacebook;
+using FacebookAutomation.Contracts.IFacebook.IFeedback_Services;
 using FacebookAutomation.Contracts.IProxy;
 using FacebookAutomation.Factories;
 using FacebookAutomation.Models;
@@ -38,6 +39,11 @@ public class Program
 
         HttpClientSingleton.Instance.ConfigureHttpClient(cookies, URL);
 
+        var userActionsService = serviceProvider.GetRequiredService<IFacebookUserActionsService>();
+
+        await userActionsService.SendBulkFriendRequests(new List<string> { "100003122350573", "100006208265338" });
+
+        /*
         var commentService = serviceProvider.GetRequiredService<ICommentsService>();
 
         var response = await commentService.GetCommentsForPost(new PostInfoModel
@@ -79,7 +85,7 @@ public class Program
 
         //await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
 
-        await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.CARE, "اكتر محل مضمون في مصر");
+        //await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/Games2Egypt", "2", ReactionsEnum.CARE, "اكتر محل مضمون في مصر");
     }
 
     /*
@@ -119,6 +125,8 @@ public class Program
 
                     services.AddScoped<ICommentsService>(x => new CommentsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
                     services.AddScoped<IReactionsService>(x => new ReactionsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
+
+                    services.AddScoped<IFacebookUserActionsService>(x => new FacebookUserActionsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData()));
                 });
 
 
