@@ -168,7 +168,7 @@ public class Program
                         do
                         {
                             usersResponse = await facebookIntegrationService.GetFacebookUsersFor(model, usersNextPage, maxResults - totalResults);
-                            if (usersResponse == null || usersResponse.Models == null || !usersResponse.Models.Any())
+                            if (usersResponse == null || usersResponse.Models == null)
                                 break;
 
                             usersNextPage = usersResponse.Pagination;

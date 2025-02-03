@@ -18,7 +18,26 @@ namespace FacebookAutomation.Utils
         {
             string[] lines = content.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             string firstJsonObject = lines[0].Trim();
-            return JObject.Parse(firstJsonObject);
+            JObject firstJson = JObject.Parse(firstJsonObject);
+
+            foreach (var line in lines)
+            {
+                if (line.Contains("\"page_info\":"))
+                {
+                    int startIndex = line.IndexOf("\"page_info\":");
+                    int endIndex = line.IndexOf('}', startIndex) + 1;
+                    string pageInfoJson = line.Substring(startIndex, endIndex - startIndex);
+
+                    JObject pageInfoObject = JObject.Parse("{" + pageInfoJson + "}");
+                    firstJson.Merge(pageInfoObject, new JsonMergeSettings
+                    {
+                        MergeArrayHandling = MergeArrayHandling.Union
+                    });
+                    break;
+                }
+            }
+
+            return firstJson;
         }
 
         public static async Task<JObject> DeserializeResponseToDynamic(HttpResponseMessage response)
