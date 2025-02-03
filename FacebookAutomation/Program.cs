@@ -34,6 +34,7 @@ public class Program
 
         const string URL = "https://www.facebook.com/api/graphql/";
 
+
         var facebookLoginAutomation = serviceProvider.GetRequiredService<FacebookLoginAutomation>();
         var cookies = facebookLoginAutomation.Login(facebookAuth);
 
@@ -83,7 +84,7 @@ public class Program
         }, "My Best Scene Ever");
         */
 
-        //await FacebookDataFetcher.FetchData("games mix", "2000");
+        await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
 
         //await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
 

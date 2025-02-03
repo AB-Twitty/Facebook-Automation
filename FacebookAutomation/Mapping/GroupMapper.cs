@@ -1,0 +1,44 @@
+﻿using FacebookAutomation.Models.Facebook;
+
+namespace FacebookAutomation.Mapping
+{
+    public class GroupMapper : FacebookResponseMapper<GroupInfoModel>
+    {
+        protected override BaseResponse<GroupInfoModel> MapToModel(dynamic expandoObject)
+        {
+            // Initialize the result object
+            var result = new BaseResponse<GroupInfoModel>
+            {
+                Models = new List<GroupInfoModel>()
+            };
+
+            if (expandoObject?.data?.serpResponse?.results?.edges != null)
+            {
+                foreach (var edge in expandoObject.data.serpResponse.results.edges)
+                {
+                    var postInfo = new GroupInfoModel
+                    {
+                        Id = edge.rendering_strategy?.view_model?.profile?.id,
+                        Name = edge.rendering_strategy?.view_model?.profile?.name,
+                        Url = edge.rendering_strategy?.view_model?.profile?.url,
+                        JoinState = edge.rendering_strategy?.view_model?.ctas?.primary?[0]?.profile?.viewer_join_state,
+                        PublicityState = edge.rendering_strategy?.view_model?.ctas?.primary?[0]?.profile?.viewer_forum_join_state
+                    };
+
+                    result.Models.Add(postInfo);
+                }
+            }
+
+            if (expandoObject?.data?.serpResponse?.results?.page_info != null)
+            {
+                result.Pagination = new Pagination
+                {
+                    End_Cursor = expandoObject.data.serpResponse.results.page_info.end_cursor,
+                    Has_Next_Page = expandoObject.data.serpResponse.results.page_info.has_next_page
+                };
+            }
+
+            return result;
+        }
+    }
+}
