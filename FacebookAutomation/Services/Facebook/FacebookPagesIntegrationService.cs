@@ -47,12 +47,12 @@ namespace FacebookAutomation.Services.Facebook
                     if (match.Success)
                     {
                         string pageId = match.Groups[1].Value;
-                        Console.WriteLine("Found Page ID: " + pageId);
+                        Console.WriteLine("Found Group ID: " + pageId);
                         return new PageInfoModel { Id = pageId };
                     }
                     else
                     {
-                        Console.WriteLine("ID not found in the page.");
+                        Console.WriteLine("ID not found in the source code of the web page.");
                         return null;
                     }
                 }
@@ -156,6 +156,7 @@ namespace FacebookAutomation.Services.Facebook
                 var fbApiReqFriendlyName = "ProfileCometTimelineFeedRefetchQuery";
                 var cursorValue = Helper.GetCursorValue(nextPage);
                 var variables = "{\"afterTime\":null,\"beforeTime\":null,\"count\":3,\"cursor\":" + cursorValue + ",\"feedLocation\":\"TIMELINE\",\"feedbackSource\":0,\"focusCommentID\":null,\"memorializedSplitTimeFilter\":null,\"omitPinnedPost\":true,\"postedBy\":{\"group\":\"OWNER\"},\"privacy\":null,\"privacySelectorRenderLocation\":\"COMET_STREAM\",\"renderLocation\":\"timeline\",\"scale\":1,\"stream_count\":1,\"taggedInOnly\":null,\"trackingCode\":null,\"useDefaultActor\":false,\"id\":\"" + pageInfo.Id + "\",\"__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider\":false,\"__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider\":false,\"__relay_internal__pv__IsWorkUserrelayprovider\":false,\"__relay_internal__pv__CometFeedStoryDynamicResolutionPhotoAttachmentRenderer_experimentWidthrelayprovider\":500,\"__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider\":false,\"__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider\":false,\"__relay_internal__pv__IsMergQAPollsrelayprovider\":false,\"__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider\":false,\"__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider\":false,\"__relay_internal__pv__CometUFIShareActionMigrationrelayprovider\":true,\"__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider\":true,\"__relay_internal__pv__EventCometCardImage_prefetchEventImagerelayprovider\":false}";
+
                 var docId = 9278858502175880;
                 var extraFormData = new Dictionary<string, string>
                 {

@@ -82,4 +82,46 @@ namespace FacebookAutomation.Mapping
             return result;
         }
     }
+
+    public class PostFromGroupMapper : FacebookResponseMapper<PostInfoModel>
+    {
+        protected override BaseResponse<PostInfoModel> MapToModel(dynamic expandoObject)
+        {
+            // Initialize the result object
+            var result = new BaseResponse<PostInfoModel>
+            {
+                Models = new List<PostInfoModel>()
+            };
+
+            // Map the results (edges) into PostModels
+            if (expandoObject?.data?.node?.group_feed?.edges != null)
+            {
+                foreach (var edge in expandoObject.data.node.group_feed.edges)
+                {
+                    var postInfo = new PostInfoModel
+                    {
+                        StoryId = edge.node?.id,
+                        PostId = edge.node?.post_id,
+                        FeedbackId = edge.node?.feedback?.id
+                    };
+
+                    if (postInfo.FeedbackId == null) continue;
+
+                    result.Models.Add(postInfo);
+                }
+            }
+
+            var pagination = new Pagination { Has_Next_Page = false, End_Cursor = "" };
+
+            if (result.Models.Count > 0)
+            {
+                pagination.End_Cursor = expandoObject?.page_info?.end_cursor;
+                pagination.Has_Next_Page = expandoObject?.page_info?.has_next_page;
+            }
+
+            result.Pagination = pagination;
+
+            return result;
+        }
+    }
 }
