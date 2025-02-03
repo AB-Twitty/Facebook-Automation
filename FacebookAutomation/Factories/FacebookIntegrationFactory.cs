@@ -11,6 +11,7 @@ namespace FacebookAutomation.Factories
             {
                 FacebookIntegrationServiceType.Posts => new FacebookPostsIntegrationService(),
                 FacebookIntegrationServiceType.Pages => new FacebookPagesIntegrationService(),
+                FacebookIntegrationServiceType.Groups => new FacebookGroupsIntegrationService(),
                 _ => throw new Exception("Invalid FacebookIntegrationServiceType")
             };
         }
@@ -18,9 +19,9 @@ namespace FacebookAutomation.Factories
 
     public enum FacebookIntegrationServiceType
     {
-
+        Groups,
         Posts,
-        Pages,
-        Groups
+        Pages
+
     }
 }
