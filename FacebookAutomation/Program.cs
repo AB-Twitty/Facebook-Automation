@@ -40,6 +40,14 @@ public class Program
 
         HttpClientSingleton.Instance.ConfigureHttpClient(cookies, URL);
 
+        var groupsService = new FacebookGroupsIntegrationService();
+        var res = await groupsService.SendJoinRequest(new GroupInfoModel
+        {
+            Id = "2425797771029513",
+            Url = "https://www.facebook.com/groups/mohtm.rdr2"
+        });
+
+
         var userActionsService = serviceProvider.GetRequiredService<IFacebookUserActionsService>();
 
         //await userActionsService.SendBulkFriendRequests(new List<string> { "100003122350573", "100006208265338" });
@@ -84,7 +92,7 @@ public class Program
         }, "My Best Scene Ever");
         */
 
-        await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
+        //await FacebookDataFetcher.FetchData("red dead redemption 2", "2000");
 
         //await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/Games2Egypt", "2000");
 
