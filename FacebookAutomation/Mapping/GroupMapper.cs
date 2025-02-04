@@ -62,7 +62,8 @@ namespace FacebookAutomation.Mapping
                         Id = edge.node?.id,
                         Name = edge.node?.name,
                         Url = edge.node?.url,
-                        FriendshipStatus = edge.node?.user_type_renderer?.user?.friendship_status
+                        FriendshipStatus = edge.node?.user_type_renderer != null
+                            ? edge.node?.user_type_renderer?.user?.friendship_status : null
                     };
 
                     result.Models.Add(postInfo);
