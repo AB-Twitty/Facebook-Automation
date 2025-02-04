@@ -1,6 +1,8 @@
 # Facebook Automation Solution
 
-This repository provides a comprehensive Facebook automation solution using C#. It supports multiple automation tasks such as logging in, sending friend requests, posting comments, reacting to posts, joining Facebook groups, and fetching data from Facebook.
+This repository provides a comprehensive solution for automating various tasks on Facebook. It enables users to interact with Facebook through automation, allowing for seamless login, user actions, data fetching, and interaction with posts, pages, and groups.
+
+The solution makes use of C# along with Selenium for Facebook login, handling proxy settings, performing actions like sending friend requests, poking, and following, as well as interacting with posts by commenting and reacting.
 
 ## Table of Contents
 
@@ -9,9 +11,11 @@ This repository provides a comprehensive Facebook automation solution using C#. 
 - [Requirements](#requirements)
 - [Setup & Installation](#setup--installation)
 - [Usage](#usage)
-  - [Logging in to Facebook](#logging-in-to-facebook)
-  - [Performing User Actions](#performing-user-actions)
+  - [Facebook Login Automation](#facebook-login-automation)
+  - [User Actions](#user-actions)
   - [Fetching Facebook Data](#fetching-facebook-data)
+  - [Reactions & Comments](#reactions--comments)
+  - [Group and Page Interaction](#group-and-page-interaction)
 - [Configuration](#configuration)
 - [Services & Dependencies](#services--dependencies)
 - [Contributing](#contributing)
@@ -19,33 +23,36 @@ This repository provides a comprehensive Facebook automation solution using C#. 
 
 ## Overview
 
-The Facebook Automation solution is designed to automate various tasks on Facebook. This includes logging into Facebook, interacting with user posts, sending friend requests, joining groups, and even fetching data for analysis. The solution makes use of modern C# practices and leverages dependency injection to ensure easy extensibility and testing.
+This Facebook Automation solution is designed to automate several tasks such as logging into Facebook, sending friend requests, following users, posting comments, reacting to posts, joining groups, and fetching data based on queries. 
 
-### Key Functionalities:
+The solution utilizes Selenium for login automation and supports proxy authentication. It also allows interaction with posts, pages, and groups by reacting to or commenting on content, as well as fetching user data, post feedback, and group membership details.
 
-- **Login Automation**: Automates the process of logging into Facebook, including proxy support.
-- **User Actions**: Includes sending bulk friend requests, following, poking users, and commenting on posts.
-- **Group Actions**: Supports sending join requests to Facebook groups.
-- **Post Reactions**: Automates reactions (e.g., "Like", "Love", "Care", etc.) on posts.
-- **Fetch Data**: Fetches Facebook user data, page data, and post comments.
+Key features include:
+- Login with cookie validation or fresh login if cookies are expired.
+- Proxy support for login via a configured username and password for proxy authentication.
+- Fetching data from Facebook posts, pages, and groups based on a keyword, with support for limiting the number of results.
+- Performing bulk user actions like friend requests, poking, and following.
+- Reacting to posts and commenting on them.
+- Group and page interaction for feedback actions, including commenting and reacting on posts.
 
 ## Features
 
-- **Facebook Login**: Use provided credentials to login to Facebook with optional proxy support.
-- **Facebook Actions**: Automate actions like sending friend requests, poking, or following users.
-- **Group Management**: Join Facebook groups programmatically.
-- **React to Posts**: React to Facebook posts using various reaction types.
-- **Comment on Posts**: Post comments on user posts or page posts.
-- **Data Fetching**: Retrieve user data, page data, and comments from Facebook posts using GraphQL API.
-
+- **Login Automation**: Validate and reuse cookies, log in using Selenium, and handle proxy authentication for the browser session.
+- **User Actions**: Send friend requests, poke users, or follow users programmatically.
+- **Post Interaction**: React and comment on posts, reply to comments, or interact with Facebook feedback (like reactions, shares, and comments).
+- **Data Fetching**: Search Facebook posts, pages, and groups by keywords and fetch the people involved with posts (those who reacted, commented, or reshared).
+- **Group & Page Feedback**: Add reactions and comments to posts within specified groups or pages.
+- **Join Group**: Send a join request to a Facebook group.
+  
 ## Requirements
 
-- **.NET 6.0** or later (for building and running the application)
+- **.NET 6.0** or later
 - **C# 10.0** or later
+- **Selenium WebDriver**: For browser automation and login.
 - **Visual Studio** (or any C# IDE of choice)
-- **Facebook credentials** (for login)
-- **Proxy settings** (optional, for using proxies during automation)
-- **Facebook API access** (for GraphQL requests)
+- **Facebook credentials**: Required for logging into Facebook.
+- **Proxy details**: Optional, used for configuring proxy authentication.
+- **Facebook API access**: Required for interacting with Facebook's GraphQL API.
 
 ## Setup & Installation
 
@@ -58,9 +65,9 @@ The Facebook Automation solution is designed to automate various tasks on Facebo
 
 2. **Install dependencies**:
 
-   If using Visual Studio, open the solution file (`FacebookAutomation.sln`). It should automatically restore all required dependencies.
+   If using Visual Studio, open the solution file (`FacebookAutomation.sln`). The IDE should restore all required dependencies automatically.
 
-   Alternatively, if using the command line, run:
+   Alternatively, if using the command line:
 
    ```bash
    dotnet restore
@@ -68,8 +75,8 @@ The Facebook Automation solution is designed to automate various tasks on Facebo
 
 3. **Configure Application**:
 
-   - Open `appsettings.json` and configure your Facebook credentials and proxy settings (if applicable).
-   - Make sure to replace any placeholder data with your actual credentials and configurations.
+   - Open the `appsettings.json` file and configure your Facebook credentials and proxy settings (if applicable).
+   - Provide the proxy username and password for authentication when the browser prompt opens.
 
    Example:
 
@@ -79,7 +86,7 @@ The Facebook Automation solution is designed to automate various tasks on Facebo
        "Email": "your_email@example.com",
        "Password": "your_password",
        "ProxySettings": {
-         "IpAddress": "your.proxy.ip",
+         "IpAddress": "proxy_ip",
          "Port": "proxy_port",
          "Username": "proxy_username",
          "Password": "proxy_password"
@@ -91,7 +98,7 @@ The Facebook Automation solution is designed to automate various tasks on Facebo
 
 4. **Run the application**:
 
-   You can now build and run the application. For Visual Studio users, simply press **F5**. For command line:
+   Build and run the application. In Visual Studio, press **F5** to start. Alternatively, use the command line:
 
    ```bash
    dotnet run
@@ -99,9 +106,9 @@ The Facebook Automation solution is designed to automate various tasks on Facebo
 
 ## Usage
 
-### Logging in to Facebook
+### Facebook Login Automation
 
-To log in to Facebook, instantiate a `FacebookAuthModel` with your credentials and proxy settings (if necessary), and call the `Login` method:
+The solution first checks if there are saved cookies for the current session. If cookies exist and are valid, the system will load them to continue the session. If the cookies are expired or not found, it will proceed to log in using the provided Facebook credentials and proxy settings.
 
 ```csharp
 var facebookAuth = new FacebookAuthModel
@@ -121,9 +128,9 @@ var facebookLoginAutomation = new FacebookLoginAutomation();
 var cookies = facebookLoginAutomation.Login(facebookAuth);
 ```
 
-### Performing User Actions
+### User Actions
 
-Once logged in, you can perform various actions such as sending friend requests, poking, or following users:
+The solution allows for bulk user actions, such as sending friend requests, poking users, and following users:
 
 ```csharp
 var userActionsService = new FacebookUserActionsService();
@@ -134,7 +141,7 @@ await userActionsService.FollowUser("user_id");
 
 ### Fetching Facebook Data
 
-You can fetch user data, page data, or comments from Facebook posts using the `FacebookDataFetcher`:
+You can fetch Facebook data such as user feedback, posts, pages, and groups by specifying a keyword and limit. The solution will prioritize fetching data from posts, pages, and groups, in that order, and retrieve the people who interacted with the content (comments, reactions, and shares).
 
 ```csharp
 await FacebookDataFetcher.FetchData("search_query", "limit");
@@ -142,34 +149,65 @@ await FacebookDataFetcher.FetchDataFromPageUrl("https://www.facebook.com/pageurl
 await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/pageurl", "limit", ReactionsEnum.LOVE, "Your comment here");
 ```
 
+### Reactions & Comments
+
+You can add reactions and comments to posts, or even react and comment on specific comments made by others.
+
+```csharp
+var reactionsService = new ReactionsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData());
+await reactionsService.ReactTo(post.FeedbackId, ReactionsEnum.LOVE);
+
+var commentsService = new CommentsService("https://www.facebook.com/api/graphql/", FormDataState.Instance.GetAllFormData());
+await commentsService.CommentOn(post.FeedbackId, "Nice post!", true); // Respond to a comment
+```
+
+### Group and Page Interaction
+
+For groups and pages, you can provide URLs and limits to interact with posts, such as adding reactions or comments. The solution will perform these actions across the specified number of posts within the group or page.
+
+```csharp
+await FacebookGroupsIntegrationService.SendJoinRequest(new GroupInfoModel
+{
+    Id = "group_id",
+    Url = "https://www.facebook.com/groups/groupname"
+});
+
+await FacebookDataFetcher.FeedbackForPostsOfPageWithUrl("https://www.facebook.com/pageurl", "limit", ReactionsEnum.LOVE, "Great post!");
+```
+
+### Join Group
+
+You can send a join request to a group using the following method:
+
+```csharp
+await FacebookGroupsIntegrationService.SendJoinRequest(new GroupInfoModel
+{
+    Id = "group_id",
+    Url = "https://www.facebook.com/groups/groupname"
+});
+```
+
 ## Configuration
 
-You can configure various aspects of the solution through the `appsettings.json` file, including:
-
-- **Facebook login credentials**: Your Facebook email and password for login.
-- **Proxy settings**: Optionally, configure a proxy for your requests.
-- **API endpoint**: The endpoint for Facebook's GraphQL API.
+You can configure various aspects of the solution through the `appsettings.json` file, such as:
+- **Facebook credentials**: Your Facebook email and password.
+- **Proxy settings**: Optional, to authenticate via proxy.
+- **API endpoint**: The endpoint for Facebook’s GraphQL API.
 
 ## Services & Dependencies
 
 This project uses the following services and libraries:
 
-- **Dependency Injection**: Managed through `IHostBuilder` to inject services into the application.
-- **HttpClient Singleton**: A singleton service that handles HTTP client configuration for making API calls.
-- **Facebook API**: The project interacts with Facebook's GraphQL API for post interactions and data fetching.
-
-Key services include:
-- `FacebookLoginAutomation`: Handles Facebook login.
-- `ICommentsService`: Allows commenting on posts.
-- `IReactionsService`: Handles reactions to posts.
-- `IFacebookUserActionsService`: Handles actions like sending friend requests, following, and poking users.
+- **Selenium WebDriver**: For automating the Facebook login.
+- **HttpClient Singleton**: For making API calls to Facebook.
+- **Dependency Injection**: For managing services such as user actions, comments, and reactions.
+- **Facebook API**: To interact with Facebook posts, pages, and groups via GraphQL.
 
 ## Contributing
 
-We welcome contributions! If you'd like to improve this project or fix bugs, feel free to fork the repository, create a branch, and submit a pull request.
+We welcome contributions! If you'd like to improve this project, fix bugs, or add new features, feel free to fork the repository, create a branch, and submit a pull request.
 
 ### How to contribute:
-
 1. Fork the repository.
 2. Create a new branch: `git checkout -b feature-name`.
 3. Make your changes.
@@ -183,4 +221,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Thank you for using the Facebook Automation Solution! If you encounter any issues or have questions, please feel free to open an issue or reach out to us. Enjoy automating your Facebook experience!
+Thank you for using the Facebook Automation Solution! If you encounter any issues or have questions, feel free to open an issue or reach out. Enjoy automating your Facebook experience!
