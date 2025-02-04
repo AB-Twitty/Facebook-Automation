@@ -184,5 +184,45 @@ namespace FacebookAutomation.Services.Facebook
                 return await FetchPostFromGroup(groupInfo, nextPage);
             }
         }
+
+        public async Task<bool> SendJoinRequest(GroupInfoModel groupInfo)
+        {
+            try
+            {
+                if (groupInfo.IsMember)
+                {
+                    Console.WriteLine($"User is already a member of group \"{groupInfo.Id}\".");
+                    return false;
+                }
+
+                // Form data as URL-encoded
+                var fbApiReqFriendlyName = "useGroupRequestToJoinMutation";
+                var variables = "{\"feedType\":\"DISCUSSION\",\"groupID\":\"" + groupInfo.Id + "\",\"input\":{\"client_mutation_id\":\"1\",\"actor_id\":\"" + FormDataState.Instance.GetUserId() + "\",\"action_source\":\"GROUP_MALL\",\"attribution_id_v2\":\"CometGroupAboutRoot.react,comet.group.about,unexpected,1738628953688,737989,2361831622,,;SearchCometGlobalSearchDefaultTabRoot.react,comet.search_results.default_tab,tap_search_bar,1738628947661,428618,391724414624676,,\",\"group_id\":\"" + groupInfo.Id + "\",\"group_share_tracking_params\":{\"app_id\":null,\"exp_id\":\"null\",\"is_from_share\":false}},\"inviteShortLinkKey\":null,\"isChainingRecommendationUnit\":false,\"scale\":1,\"renderLocation\":\"group_mall\"}";
+                var docId = 9515532875165814;
+                var extraFormData = new Dictionary<string, string>
+                {
+                    { "fb_api_req_friendly_name", fbApiReqFriendlyName },
+                    { "variables", variables },
+                    { "doc_id", docId.ToString() }
+                };
+
+                var content = new FormUrlEncodedContent(extraFormData.Concat(_basicFormData));
+                var response = await _httpClient.PostAsync(Url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Successfully joined group \"{groupInfo.Id}\".");
+                    return true;
+                }
+
+                Console.WriteLine($"Joining group \"{groupInfo.Id}\" failed with status code: {response.StatusCode}");
+                return false;
+            }
+            catch (NewDtsgTokenException _)
+            {
+                Console.WriteLine("New dtsg token exception occurred, retrying the request.");
+                return await SendJoinRequest(groupInfo);
+            }
+        }
     }
 }
