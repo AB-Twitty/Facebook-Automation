@@ -22,6 +22,7 @@
 
         public readonly static List<(string IP, int Port, string Username, string Password)> ProxyList =
         [
-            // Proxies Here
+            // proxies here
         ];
     }
+}
